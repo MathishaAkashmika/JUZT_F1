@@ -142,12 +142,22 @@ export default function RaceDashboard() {
 
                         {/* Race Title - Now positioned second */}
                         <div className="col-span-2 flex w-full mb-8">
-                            <div className="bg-red-800 text-white py-6 px-8 rounded-l-lg flex-1 flex items-center">
-                                <h2 className="text-2xl font-bold">R5 - Miami Practice 1</h2>
-                                <img src="/f1-logo.svg" alt="F1 Logo" className="h-8 ml-4" />
+                            {/* Left panel - Fastest Lap */}
+                            <div className="bg-[#1e0066] text-white py-3 px-6 rounded-l-md flex-1 flex flex-col justify-center">
+                                <div className="text-sm uppercase font-bold text-[#9370DB]">FASTEST LAP</div>
+                                <div className="flex justify-between items-center">
+                                    <span className="font-bold">Driver</span>
+                                    <span>Lap Time</span>
+                                </div>
                             </div>
-                            <div className="bg-red-900 text-white py-6 px-8 rounded-r-lg flex-1 flex items-center">
-                                <p className="text-xl font-medium">01days 03hrs 44mins 45sec</p>
+                            
+                            {/* Right panel - Race Info */}
+                            <div className="bg-[#8B0000] text-white py-3 px-6 rounded-r-md flex-1 flex items-center justify-between">
+                                <div className="font-bold">R5 - Miami Practice 1</div>
+                                <div className="flex items-center">
+                                    <img src="/f1-logo.svg" alt="F1 Logo" className="h-5 mr-2" />
+                                    <span>05days 03hrs 44mins 45sec</span>
+                                </div>
                             </div>
                         </div>
 
@@ -212,23 +222,23 @@ export default function RaceDashboard() {
 
                     {/* Right Section - Driver Positions Table */}
                     <div className="col-span-4">
-                        <Card className="bg-transparent border border-gray-700 rounded-lg">
-                            <CardHeader className="p-4 bg-gray-800">
-                                <div className="grid grid-cols-3 text-center text-base font-bold py-2">
+                        <Card className="bg-transparent border border-gray-700 rounded-lg overflow-hidden">
+                            <CardHeader className="p-0">
+                                <div className="grid grid-cols-3 text-center text-sm font-medium py-2 bg-[#2d2d2d] text-white">
                                     <div>Pos</div>
                                     <div>Driver</div>
                                     <div>Time</div>
                                 </div>
                             </CardHeader>
                             <CardContent className="p-0">
-                                <div className="max-h-[650px] overflow-auto">
-                                    {MOCK_DRIVERS.map((driver) => (
+                                <div className="max-h-[650px] overflow-auto bg-[#1e1e1e]">
+                                    {MOCK_DRIVERS.map((driver, index) => (
                                         <div
                                             key={driver.position}
-                                            className="grid grid-cols-3 text-center py-3 border-b border-gray-700 hover:bg-gray-800"
+                                            className={`grid grid-cols-3 text-center py-2 ${index % 2 === 0 ? 'bg-[#1e1e1e]' : 'bg-[#262626]'} text-white`}
                                         >
                                             <div>{driver.position}</div>
-                                            <div>{driver.code}</div>
+                                            <div className="font-bold">{driver.code}</div>
                                             <div>{driver.time}</div>
                                         </div>
                                     ))}
@@ -236,6 +246,7 @@ export default function RaceDashboard() {
                             </CardContent>
                         </Card>
                     </div>
+                    
                 </div>
             </div>
         </div>
