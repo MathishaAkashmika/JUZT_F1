@@ -9,7 +9,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UsersService {
-  constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
+  constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) { }
 
   async create(createUserDto: CreateUserDto): Promise<UserDocument> {
     const newUser = new this.userModel(createUserDto);
@@ -66,11 +66,19 @@ export class UsersService {
     email: string,
     userData?: any,
   ): Promise<UserDocument> {
+    console.log('findOrCreateByAuth0Id called with:', {
+      auth0Id,
+      email,
+      userData
+    });
+    
     // Try to find existing user
     let user = await this.userModel.findOne({ auth0Id }).exec();
-
+    console.log('Existing user found?', !!user);
+    
     // If user doesn't exist, create a new one
     if (!user) {
+      console.log('User not found, creating new user');
       const newUser = new this.userModel({
         auth0Id,
         email,
@@ -78,11 +86,12 @@ export class UsersService {
         lastName: userData?.name?.split(' ').slice(1).join(' ') || '',
         picture: userData?.picture,
       });
-
+    
       user = await newUser.save();
-      console.log('New user created in MongoDB:', user);
+      console.log('New user created in MongoDB:', JSON.stringify(user, null, 2));
     } else {
       // Optionally update existing user with fresh data
+      console.log('User found, checking if update needed');
       const updatedData = {
         email: email || user.email,
         firstName: userData?.name?.split(' ')[0] || user.firstName,
@@ -109,6 +118,7 @@ export class UsersService {
     }
 
     if (!user) {
+      console.log('Failed to find or create user');
       throw new NotFoundException(
         `Failed to find or create user with Auth0 ID ${auth0Id}`,
       );

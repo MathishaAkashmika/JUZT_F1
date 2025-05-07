@@ -90,25 +90,16 @@ export class AuthController {
 
       const userInfo = await userInfoResponse.json();
 
-      const existingUser = await this.userService.findByAuth0Id(userInfo.sub);
-
-      let user;
-
-      if (existingUser) {
-        console.info('User already exists:', existingUser);
-        user = existingUser;
-      } else {
-        const createUserDto: CreateUserDto = {
-          auth0Id: userInfo.sub,
-          email: userInfo.email,
-          firstName: userInfo.given_name,
-          lastName: userInfo.family_name,
+      // Use findOrCreateByAuth0Id to ensure user exists
+      const user = await this.userService.findOrCreateByAuth0Id(
+        userInfo.sub,
+        userInfo.email,
+        {
+          name: `${userInfo.given_name || ''} ${userInfo.family_name || ''}`.trim(),
           picture: userInfo.picture,
-        };
-        await this.userService.create(createUserDto);
-      }
+        }
+      );
 
-      console.info('User created:', user);
       if (!userInfo || !userInfo.sub) {
         console.error('Failed to get user info');
         return res.redirect('/auth/login-failed');
