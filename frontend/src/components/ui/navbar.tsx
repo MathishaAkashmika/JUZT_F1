@@ -98,7 +98,7 @@ export default function Navbar() {
                                     onError={handleImageError}
                                 />
                             ) : (
-                                <div 
+                                <div
                                     className="w-8 h-8 rounded-full border border-gray-700 cursor-pointer bg-gray-800 flex items-center justify-center"
                                     onClick={() => setDropdownOpen(!dropdownOpen)}
                                 >

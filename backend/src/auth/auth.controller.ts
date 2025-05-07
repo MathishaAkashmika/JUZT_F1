@@ -43,6 +43,8 @@ export class AuthController {
     );
     params.append('scope', 'openid profile email');
     params.append('audience', this.configService.get('AUTH0_AUDIENCE') || '');
+    // Add prompt=login parameter to force login screen
+    params.append('prompt', 'login');
 
     return res.redirect(authorizationUrl + params.toString());
   }
