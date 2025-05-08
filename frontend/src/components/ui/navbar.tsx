@@ -61,7 +61,7 @@ export default function Navbar() {
         localStorage.removeItem('id_token')
         setUser(null)
         setDropdownOpen(false)
-        window.location.href = '/'
+        window.location.href = '/dashboard'
     }
 
     const handleImageError = () => {

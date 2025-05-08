@@ -19,7 +19,7 @@ export default function AuthSuccessPage() {
       localStorage.setItem('id_token', idToken);
 
       // Redirect to the home page or dashboard after storing tokens
-      router.push('/');
+      router.push('/dashboard');
     } else {
       // Handle the case where tokens are missing
       console.error('Authentication tokens not found in URL');

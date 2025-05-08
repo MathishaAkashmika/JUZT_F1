@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
     Select,
     SelectContent,
@@ -8,245 +8,274 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import Navbar from "@/components/ui/navbar"
-
-// Mock data for demonstration
-const MOCK_DRIVERS = [
-    { position: 1, code: "VER", time: "1:30.123" },
-    { position: 2, code: "HAM", time: "1:30.456" },
-    { position: 3, code: "PER", time: "1:30.789" },
-    { position: 4, code: "RUS", time: "1:31.012" },
-    { position: 5, code: "SAI", time: "1:31.234" },
-    { position: 6, code: "LEC", time: "1:31.345" },
-    { position: 7, code: "NOR", time: "1:31.456" },
-    { position: 8, code: "RIC", time: "1:31.567" },
-    { position: 9, code: "GAS", time: "1:31.678" },
-    { position: 10, code: "ALO", time: "1:31.789" },
-    { position: 11, code: "OCO", time: "1:31.890" },
-    { position: 12, code: "STR", time: "1:32.001" },
-    { position: 13, code: "HUL", time: "1:32.112" },
-    { position: 14, code: "MAG", time: "1:32.223" },
-    { position: 15, code: "BOT", time: "1:32.334" },
-    { position: 16, code: "ZHO", time: "1:32.445" },
-    { position: 17, code: "TSU", time: "1:32.556" },
-    { position: 18, code: "ALB", time: "1:32.667" },
-    { position: 19, code: "SAR", time: "1:32.778" },
-    { position: 20, code: "DEV", time: "1:32.889" }
-]
-
-// Add this to your mock data
-const MOCK_DRIVER_CARDS = [
-    {
-        name: "Albon",
-        team: "Williams",
-        teamColor: "bg-blue-600",
-        logoUrl: "/team-logos/williams.png",
-        imageUrl: "/drivers/albon.png"
-    },
-    {
-        name: "Gasly",
-        team: "Alpine",
-        teamColor: "bg-blue-500",
-        logoUrl: "/team-logos/alpine.png",
-        imageUrl: "/drivers/gasly.png"
-    },
-    {
-        name: "Hector",
-        team: "Red Bull",
-        teamColor: "bg-blue-800",
-        logoUrl: "/team-logos/redbull.png",
-        imageUrl: "/drivers/hector.png"
-    }
-]
+import {
+    getAvailableSeasons,
+    getTracks,
+    getRaceSessions,
+    Season,
+    Track,
+    Session
+} from '@/lib/f1-api'
 
 export default function RaceDashboard() {
-    const [selectedSeason, setSelectedSeason] = useState<string>("")
-    const [selectedTrack, setSelectedTrack] = useState<string>("")
-    const [selectedSession, setSelectedSession] = useState<string>("")
+    const [selectedSeason, setSelectedSeason] = useState("")
+    const [selectedTrack, setSelectedTrack] = useState("")
+    const [selectedSession, setSelectedSession] = useState("")
+    const [seasons, setSeasons] = useState<Season[]>([])
+    const [tracks, setTracks] = useState<Track[]>([])
+    const [sessions, setSessions] = useState<Session[]>([])
+    const [selectedDriver, setSelectedDriver] = useState(0)
+    const [isLoadingTracks, setIsLoadingTracks] = useState(false)
+    const [isLoadingSessions, setIsLoadingSessions] = useState(false)
+    const [error, setError] = useState<string | null>(null)
+
+    // Generate years from 1950 to current year
+    useEffect(() => {
+        const currentYear = new Date().getFullYear()
+        const years = Array.from(
+            { length: currentYear - 1949 },
+            (_, i) => ({ year: currentYear - i, totalRaces: 0 })
+        )
+        setSeasons(years)
+    }, [])
+
+    // Fetch tracks when season changes
+    useEffect(() => {
+        if (!selectedSeason) return
+        setSelectedTrack("")
+        setSelectedSession("")
+        setTracks([])
+        setSessions([])
+        setError(null)
+        setIsLoadingTracks(true)
+
+        getTracks(selectedSeason).then(res => {
+            setIsLoadingTracks(false)
+            if (res.error) {
+                setError(res.error.message)
+                return
+            }
+            setTracks(res.data)
+        })
+    }, [selectedSeason])
+
+    // Fetch sessions when track changes
+    useEffect(() => {
+        if (!selectedSeason || !selectedTrack) return
+        setSelectedSession("")
+        setSessions([])
+        setError(null)
+        setIsLoadingSessions(true)
+
+        // Find the track id
+        const track = tracks.find(t => t.circuit.toLowerCase() === selectedTrack)
+        if (!track) return
+
+        getRaceSessions(selectedSeason, track.id.toString()).then(res => {
+            setIsLoadingSessions(false)
+            if (res.error) {
+                setError(res.error.message)
+                return
+            }
+            setSessions(res.data)
+        })
+    }, [selectedTrack, selectedSeason, tracks])
+
+    // Format date and time for display
+    const formatSessionDateTime = (session: Session) => {
+        const date = new Date(`${session.date}T${session.time}`);
+        return date.toLocaleString('en-US', {
+            weekday: 'short',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true
+        });
+    }
+
+    // Example driver data for highlight cards
+    const driverHighlights = [
+        {
+            name: "Albon",
+            team: "Williams",
+            carImg: "/cars/williams.png",
+            driverImg: "/drivers/albon.png",
+            teamLogo: "/team-logos/williams.png"
+        },
+        {
+            name: "Gasly",
+            team: "Alpine",
+            carImg: "/cars/alpine.png",
+            driverImg: "/drivers/gasly.png",
+            teamLogo: "/team-logos/alpine.png"
+        },
+        {
+            name: "Hadjar",
+            team: "Visa RB",
+            carImg: "/cars/visa-rb.png",
+            driverImg: "/drivers/hadjar.png",
+            teamLogo: "/team-logos/visa-rb.png"
+        }
+    ]
 
     return (
-        <div className="flex flex-col bg-black min-h-screen text-white">
-            {/* Navigation Bar */}
+        <div className="min-h-screen bg-black text-white font-mono tracking-wide">
             <Navbar />
+            <div className="max-w-7xl mx-auto flex flex-col items-center gap-4 py-8 px-2 w-full">
+                {/* Error message */}
+                {error && (
+                    <div className="w-full max-w-4xl bg-red-900/50 border border-red-500 text-white px-4 py-2 rounded-xl">
+                        {error}
+                    </div>
+                )}
 
-            <div className="flex flex-col gap-8 p-8">
-                {/* Selection Controls */}
-                <div className="grid grid-cols-3 gap-12 px-6 py-8">
+                {/* Dropdowns */}
+                <div className="flex flex-row gap-8 w-full max-w-4xl justify-center items-center">
                     <Select value={selectedSeason} onValueChange={setSelectedSeason}>
-                        <SelectTrigger className="bg-gray-800 text-white border-none h-12 text-base px-6 rounded-lg">
-                            <SelectValue placeholder="Select Season" />
+                        <SelectTrigger className="w-full max-w-xs rounded-xl bg-neutral-900 border border-neutral-700 text-lg py-3 px-6 font-mono flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-purple-600">
+                            <SelectValue placeholder="Select Year" />
                         </SelectTrigger>
-                        <SelectContent className="bg-gray-800 text-white border border-gray-700">
-                            <SelectItem value="2023" className="text-base py-2">2023</SelectItem>
-                            <SelectItem value="2022" className="text-base py-2">2022</SelectItem>
-                            <SelectItem value="2021" className="text-base py-2">2021</SelectItem>
+                        <SelectContent className="bg-neutral-900 border border-neutral-700 rounded-xl text-lg">
+                            {seasons.map((season) => (
+                                <SelectItem key={season.year} value={season.year.toString()}>
+                                    {season.year}
+                                </SelectItem>
+                            ))}
                         </SelectContent>
                     </Select>
-
-                    <Select value={selectedTrack} onValueChange={setSelectedTrack}>
-                        <SelectTrigger className="bg-gray-800 text-white border-none h-12 text-base px-6 rounded-lg">
-                            <SelectValue placeholder="Select Track" />
+                    <Select value={selectedTrack} onValueChange={setSelectedTrack} disabled={isLoadingTracks || !selectedSeason}>
+                        <SelectTrigger className="w-full max-w-xs rounded-xl bg-neutral-900 border border-neutral-700 text-lg py-3 px-6 font-mono flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-purple-600">
+                            <SelectValue placeholder={isLoadingTracks ? "Loading tracks..." : "Select Track"} />
                         </SelectTrigger>
-                        <SelectContent className="bg-gray-800 text-white border border-gray-700">
-                            <SelectItem value="miami" className="text-base py-2">Miami</SelectItem>
-                            <SelectItem value="monaco" className="text-base py-2">Monaco</SelectItem>
-                            <SelectItem value="silverstone" className="text-base py-2">Silverstone</SelectItem>
-                            <SelectItem value="monza" className="text-base py-2">Monza</SelectItem>
+                        <SelectContent className="bg-neutral-900 border border-neutral-700 rounded-xl text-lg">
+                            {tracks.map((track) => (
+                                <SelectItem key={track.id} value={track.circuit.toLowerCase()}>
+                                    {track.circuit} ({track.country})
+                                </SelectItem>
+                            ))}
                         </SelectContent>
                     </Select>
-
-                    <Select value={selectedSession} onValueChange={setSelectedSession}>
-                        <SelectTrigger className="bg-gray-800 text-white border-none h-12 text-base px-6 rounded-lg">
-                            <SelectValue placeholder="Select Session" />
+                    <Select value={selectedSession} onValueChange={setSelectedSession} disabled={isLoadingSessions || !selectedTrack}>
+                        <SelectTrigger className="w-full max-w-xs rounded-xl bg-neutral-900 border border-neutral-700 text-lg py-3 px-6 font-mono flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-purple-600">
+                            <SelectValue placeholder={isLoadingSessions ? "Loading sessions..." : "Select Session"} />
                         </SelectTrigger>
-                        <SelectContent className="bg-gray-800 text-white border border-gray-700">
-                            <SelectItem value="fp1" className="text-base py-2">Practice 1</SelectItem>
-                            <SelectItem value="fp2" className="text-base py-2">Practice 2</SelectItem>
-                            <SelectItem value="fp3" className="text-base py-2">Practice 3</SelectItem>
-                            <SelectItem value="qualifying" className="text-base py-2">Qualifying</SelectItem>
-                            <SelectItem value="race" className="text-base py-2">Race</SelectItem>
+                        <SelectContent className="bg-neutral-900 border border-neutral-700 rounded-xl text-lg">
+                            {sessions.map((session) => (
+                                <SelectItem key={session.id} value={session.type}>
+                                    {session.type.toUpperCase()}
+                                </SelectItem>
+                            ))}
                         </SelectContent>
                     </Select>
                 </div>
 
-                {/* Race Information */}
-                <div className="grid grid-cols-12 gap-8 mt-6">
-                    {/* Left Section */}
-                    <div className="col-span-8 grid grid-cols-2 gap-8">
-                        {/* Driver Cards */}
-                        <div className="col-span-2 flex gap-6 mb-8">
-                            {MOCK_DRIVER_CARDS.map((driver, index) => (
-                                <div key={index} className="w-full bg-[#111827] rounded-lg overflow-hidden border border-gray-800 relative h-52">
-                                    <div className="bg-blue-600 h-1 w-full"></div>
-                                    <div className="p-4">
-                                        <div className="text-xl font-bold mb-2">{driver.name}</div>
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-5 h-5 rounded-full overflow-hidden bg-gray-800">
-                                                <img src={driver.logoUrl} alt={`${driver.team} logo`} className="w-full h-full object-contain" />
-                                            </div>
-                                            <span className="text-sm text-gray-400">{driver.team}</span>
-                                        </div>
+                {/* Driver Highlight Cards */}
+                <div className="grid grid-cols-3 gap-4 w-full mb-2">
+                    {driverHighlights.map((driver, idx) => (
+                        <div
+                            key={idx}
+                            className={`relative rounded-xl border bg-neutral-900 flex items-end h-24 overflow-hidden cursor-pointer transition-all duration-150 ${selectedDriver === idx ? 'border-2 border-blue-500' : 'border border-neutral-700'}`}
+                            onClick={() => setSelectedDriver(idx)}
+                        >
+                            {/* Car image as background */}
+                            <img src={driver.carImg} alt="car" className="absolute left-0 top-0 h-full w-full object-cover opacity-90" style={{ zIndex: 1 }} />
+                            {/* Overlay for darkening */}
+                            <div className="absolute left-0 top-0 h-full w-full bg-black/40" style={{ zIndex: 2 }} />
+                            {/* Content */}
+                            <div className="relative flex flex-row justify-between items-end h-full w-full z-10 px-3 pb-2">
+                                <div className="flex flex-col justify-between h-full py-2">
+                                    <div>
+                                        <span className="text-xs font-bold leading-none block">{driver.name}</span>
+                                        <span className="text-[10px] text-gray-300 leading-none block">{driver.team}</span>
                                     </div>
-                                    <div className="absolute bottom-0 right-0 h-full w-1/2 flex justify-end items-end">
-                                        <img
-                                            src={driver.imageUrl}
-                                            alt={`${driver.name}`}
-                                            className="h-4/5 object-contain"
-                                        />
+                                    <img src={driver.teamLogo} alt="team logo" className="h-6 w-6 object-contain mt-2" />
+                                </div>
+                                <div className="flex items-end h-full">
+                                    <div className="h-16 w-16 rounded-lg overflow-hidden border-2 border-white bg-black/60 flex items-end justify-end">
+                                        <img src={driver.driverImg} alt="driver" className="h-full w-full object-contain" />
                                     </div>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+
+                {/* Top Panels + Standings Stacked */}
+                <div className="grid grid-cols-12 gap-4 w-full">
+                    {/* Left: Fastest Lap + Driver Standings */}
+                    <div className="col-span-3 flex flex-col gap-4">
+                        <div className="rounded-xl border border-neutral-700 bg-gradient-to-br from-purple-900 to-purple-700 w-full h-40 flex flex-col">
+                            <div className="rounded-t-xl bg-purple-800 text-white text-xs font-bold px-4 py-2 tracking-widest">FASTEST LAP</div>
+                            <div className="flex justify-between items-center px-6 py-4 text-lg">
+                                <span>Driver</span>
+                                <span>Lap Time</span>
+                            </div>
+                        </div>
+                        <div className="rounded-xl border border-neutral-700 bg-neutral-900 min-h-[200px] p-0 flex flex-col">
+                            <div className="rounded-t-xl bg-neutral-800 text-white text-base font-bold px-4 py-2">2025 Driver Standings</div>
+                        </div>
+                    </div>
+                    {/* Center: Next Session + Constructor Standings */}
+                    <div className="col-span-6 flex flex-col gap-4">
+                        <div className="rounded-xl border border-neutral-700 bg-gradient-to-br from-red-900 to-red-700 w-full h-40 flex flex-col">
+                            <div className="rounded-t-xl bg-red-800 text-white text-lg font-bold px-4 py-2">R6 - Miami Practice 1</div>
+                            <div className="text-center text-2xl font-bold py-4">08days 03hrs 44mins 45sec</div>
+                        </div>
+                        <div className="rounded-xl border border-neutral-700 bg-neutral-900 min-h-[200px] p-0 flex flex-col">
+                            <div className="rounded-t-xl bg-neutral-800 text-white text-base font-bold px-4 py-2">2025 Constructor Standings</div>
+                        </div>
+                    </div>
+                    {/* Right: Session Results Table */}
+                    <div className="col-span-3 flex flex-col">
+                        <div className="flex justify-between px-4 py-2 bg-neutral-800 text-white text-base font-bold rounded-full mb-2">
+                            <span>Pos</span>
+                            <span>Driver</span>
+                            <span>Time</span>
+                        </div>
+                        <div className="flex flex-col gap-2">
+                            {[
+                                { pos: 1, driver: 'VER', time: '1:27.294' },
+                                { pos: 2, driver: 'PER', time: 'Time' },
+                                { pos: 3, driver: 'RUS', time: 'Time' },
+                                { pos: 4, driver: 'LEC', time: 'Time' },
+                                { pos: 5, driver: 'ANT', time: 'Time' },
+                                { pos: 6, driver: 'SAI', time: 'Time' },
+                                { pos: 7, driver: 'HAM', time: 'Time' },
+                                { pos: 8, driver: 'TSU', time: 'Time' },
+                                { pos: 9, driver: 'GAS', time: 'Time' },
+                                { pos: 10, driver: 'NOR', time: 'Time' },
+                                { pos: 11, driver: 'ALB', time: 'Time' },
+                                { pos: 12, driver: 'LAW', time: 'Time' },
+                                { pos: 13, driver: 'ALO', time: 'Time' },
+                                { pos: 14, driver: 'HAD', time: 'Time' },
+                                { pos: 15, driver: 'BEA', time: 'Time' },
+                                { pos: 16, driver: 'STR', time: 'Time' },
+                                { pos: 17, driver: 'OCO', time: 'Time' },
+                                { pos: 18, driver: 'HUL', time: 'Time' },
+                                { pos: 19, driver: 'OCON', time: 'Time' },
+                                { pos: 20, driver: 'BOR', time: 'Time' },
+                            ].map((row, idx) => (
+                                <div
+                                    key={idx}
+                                    className="flex justify-between items-center px-4 py-2 bg-neutral-700 text-white font-bold rounded-full"
+                                >
+                                    <span>{row.pos}</span>
+                                    <span>{row.driver}</span>
+                                    <span>{row.time}</span>
                                 </div>
                             ))}
                         </div>
-
-                        {/* Race Title - Now positioned second */}
-                        <div className="col-span-2 flex w-full mb-8">
-                            {/* Left panel - Fastest Lap */}
-                            <div className="bg-[#1e0066] text-white py-3 px-6 rounded-l-md flex-1 flex flex-col justify-center">
-                                <div className="text-sm uppercase font-bold text-[#9370DB]">FASTEST LAP</div>
-                                <div className="flex justify-between items-center">
-                                    <span className="font-bold">Driver</span>
-                                    <span>Lap Time</span>
-                                </div>
-                            </div>
-                            
-                            {/* Right panel - Race Info */}
-                            <div className="bg-[#8B0000] text-white py-3 px-6 rounded-r-md flex-1 flex items-center justify-between">
-                                <div className="font-bold">R5 - Miami Practice 1</div>
-                                <div className="flex items-center">
-                                    <img src="/f1-logo.svg" alt="F1 Logo" className="h-5 mr-2" />
-                                    <span>05days 03hrs 44mins 45sec</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Driver Standings */}
-                        <Card className="bg-transparent border border-gray-700 rounded-lg">
-                            <CardHeader className="bg-indigo-900 text-white py-5 px-8">
-                                <CardTitle className="text-lg flex justify-between items-center">
-                                    <span>Driver</span>
-                                    <span>Lap Time</span>
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="p-6">
-                                <div className="h-64 overflow-auto">
-                                    <h3 className="text-lg font-bold mb-4">2023 Driver Standings</h3>
-                                    {/* Driver standings content would go here */}
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        {/* Constructor Standings */}
-                        <Card className="bg-transparent border border-gray-700 rounded-lg">
-                            <CardHeader className="bg-indigo-900 text-white py-5 px-8">
-                                <CardTitle className="text-lg flex justify-between items-center">
-                                    <span>Constructor</span>
-                                    <span>Standings</span>
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="p-6">
-                                <div className="h-64 overflow-auto">
-                                    <h3 className="text-lg font-bold mb-4">2023 Constructor Standings</h3>
-                                    {/* Constructor standings content would go here */}
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        {/* Lap Chart */}
-                        <Card className="col-span-2 bg-transparent border border-gray-700 rounded-lg mt-4">
-                            <CardHeader className="p-4">
-                                <CardTitle className="text-base">Laps Chart</CardTitle>
-                            </CardHeader>
-                            <CardContent className="p-4">
-                                <div className="h-40 flex items-center justify-center">
-                                    {/* Lap chart visualization would go here */}
-                                    <p className="text-gray-400">Lap chart visualization</p>
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        {/* Tire Strategy */}
-                        <Card className="col-span-2 bg-transparent border border-gray-700 rounded-lg mt-4">
-                            <CardHeader className="p-4">
-                                <CardTitle className="text-base">Tyre Strategy</CardTitle>
-                            </CardHeader>
-                            <CardContent className="p-4">
-                                <div className="h-72 flex items-center justify-center">
-                                    {/* Tire strategy visualization would go here */}
-                                    <p className="text-gray-400">Tire strategy visualization</p>
-                                </div>
-                            </CardContent>
-                        </Card>
                     </div>
+                </div>
 
-                    {/* Right Section - Driver Positions Table */}
-                    <div className="col-span-4">
-                        <Card className="bg-transparent border border-gray-700 rounded-lg overflow-hidden">
-                            <CardHeader className="p-0">
-                                <div className="grid grid-cols-3 text-center text-sm font-medium py-2 bg-[#2d2d2d] text-white">
-                                    <div>Pos</div>
-                                    <div>Driver</div>
-                                    <div>Time</div>
-                                </div>
-                            </CardHeader>
-                            <CardContent className="p-0">
-                                <div className="max-h-[650px] overflow-auto bg-[#1e1e1e]">
-                                    {MOCK_DRIVERS.map((driver, index) => (
-                                        <div
-                                            key={driver.position}
-                                            className={`grid grid-cols-3 text-center py-2 ${index % 2 === 0 ? 'bg-[#1e1e1e]' : 'bg-[#262626]'} text-white`}
-                                        >
-                                            <div>{driver.position}</div>
-                                            <div className="font-bold">{driver.code}</div>
-                                            <div>{driver.time}</div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
-                    
+                {/* Charts */}
+                <div className="rounded-xl border border-neutral-700 bg-neutral-900 min-h-[200px] mt-4 p-0 w-full flex flex-col">
+                    <div className="rounded-t-xl bg-neutral-800 text-white text-base font-bold px-4 py-2">Laps Chart</div>
+                </div>
+                <div className="rounded-xl border border-neutral-700 bg-neutral-900 min-h-[200px] mt-4 p-0 w-full flex flex-col">
+                    <div className="rounded-t-xl bg-neutral-800 text-white text-base font-bold px-4 py-2">Tyre Strategy</div>
                 </div>
             </div>
         </div>
