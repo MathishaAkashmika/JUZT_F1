@@ -123,47 +123,59 @@ export default function RaceDashboard() {
     return (
         <div className="min-h-screen bg-black text-white font-mono tracking-wide">
             <Navbar />
-            <div className="max-w-7xl mx-auto flex flex-col items-center gap-4 py-8 px-2 w-full">
+            <div className="w-full flex flex-col items-center gap-4 py-8 px-4">
                 {/* Error message */}
                 {error && (
-                    <div className="w-full max-w-4xl bg-red-900/50 border border-red-500 text-white px-4 py-2 rounded-xl">
+                    <div className="w-full bg-red-900/50 border border-red-500 text-white px-4 py-2 rounded-xl">
                         {error}
                     </div>
                 )}
 
                 {/* Dropdowns */}
-                <div className="flex flex-row gap-8 w-full max-w-4xl justify-center items-center">
+                <div className="flex flex-row gap-8 w-full justify-center items-center mt-4 mb-6">
                     <Select value={selectedSeason} onValueChange={setSelectedSeason}>
-                        <SelectTrigger className="w-full max-w-xs rounded-xl bg-neutral-900 border border-neutral-700 text-lg py-3 px-6 font-mono flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-purple-600">
-                            <SelectValue placeholder="Select Year" />
+                        <SelectTrigger className="w-40 rounded-xl bg-neutral-900 border border-neutral-700 text-base py-2.5 px-4 font-mono flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-purple-600">
+                            <SelectValue placeholder="Year" />
                         </SelectTrigger>
-                        <SelectContent className="bg-neutral-900 border border-neutral-700 rounded-xl text-lg">
+                        <SelectContent className="bg-neutral-700 border border-neutral-500 rounded-xl text-lg font-bold text-gray-200">
                             {seasons.map((season) => (
-                                <SelectItem key={season.year} value={season.year.toString()}>
+                                <SelectItem
+                                    key={season.year}
+                                    value={season.year.toString()}
+                                    className="hover:bg-neutral-600 focus:bg-neutral-600 rounded-full px-4 py-2 transition-all"
+                                >
                                     {season.year}
                                 </SelectItem>
                             ))}
                         </SelectContent>
                     </Select>
                     <Select value={selectedTrack} onValueChange={setSelectedTrack} disabled={isLoadingTracks || !selectedSeason}>
-                        <SelectTrigger className="w-full max-w-xs rounded-xl bg-neutral-900 border border-neutral-700 text-lg py-3 px-6 font-mono flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-purple-600">
-                            <SelectValue placeholder={isLoadingTracks ? "Loading tracks..." : "Select Track"} />
+                        <SelectTrigger className="w-64 rounded-xl bg-neutral-900 border border-neutral-700 text-base py-2.5 px-4 font-mono flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-purple-600">
+                            <SelectValue placeholder={isLoadingTracks ? "Loading..." : "Track"} />
                         </SelectTrigger>
-                        <SelectContent className="bg-neutral-900 border border-neutral-700 rounded-xl text-lg">
+                        <SelectContent className="bg-neutral-700 border border-neutral-500 rounded-xl text-lg font-bold text-gray-200">
                             {tracks.map((track) => (
-                                <SelectItem key={track.id} value={track.circuit.toLowerCase()}>
+                                <SelectItem
+                                    key={track.id}
+                                    value={track.circuit.toLowerCase()}
+                                    className="hover:bg-neutral-600 focus:bg-neutral-600 rounded-full px-4 py-2 transition-all"
+                                >
                                     {track.circuit} ({track.country})
                                 </SelectItem>
                             ))}
                         </SelectContent>
                     </Select>
                     <Select value={selectedSession} onValueChange={setSelectedSession} disabled={isLoadingSessions || !selectedTrack}>
-                        <SelectTrigger className="w-full max-w-xs rounded-xl bg-neutral-900 border border-neutral-700 text-lg py-3 px-6 font-mono flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-purple-600">
-                            <SelectValue placeholder={isLoadingSessions ? "Loading sessions..." : "Select Session"} />
+                        <SelectTrigger className="w-40 rounded-xl bg-neutral-900 border border-neutral-700 text-base py-2.5 px-4 font-mono flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-purple-600">
+                            <SelectValue placeholder={isLoadingSessions ? "Loading..." : "Session"} />
                         </SelectTrigger>
-                        <SelectContent className="bg-neutral-900 border border-neutral-700 rounded-xl text-lg">
+                        <SelectContent className="bg-neutral-700 border border-neutral-500 rounded-xl text-lg font-bold text-gray-200">
                             {sessions.map((session) => (
-                                <SelectItem key={session.id} value={session.type}>
+                                <SelectItem
+                                    key={session.id}
+                                    value={session.type}
+                                    className="hover:bg-neutral-600 focus:bg-neutral-600 rounded-full px-4 py-2 transition-all"
+                                >
                                     {session.type.toUpperCase()}
                                 </SelectItem>
                             ))}
@@ -280,4 +292,9 @@ export default function RaceDashboard() {
             </div>
         </div>
     )
+}
+
+export async function getSessionResults(season, round) {
+    const res = await fetch(`https://f1api.dev/api/results?season=${season}&round=${round}`);
+    return res.json();
 }
