@@ -6,4 +6,5 @@ export { getAvailableSeasons } from './seasons';
 export { getTracks } from './tracks';
 export { getRaceSessions } from './sessions';
 export { getSessionResults } from './results';
-export { getDriverStandings } from './drivers'; 
+export { getDriverStandings } from './drivers';
+export { getConstructorChampionship } from './constructors';

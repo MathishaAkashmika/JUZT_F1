@@ -41,6 +41,16 @@ export interface Constructor {
     position?: number;
 }
 
+export interface ConstructorChampionship {
+    id: string;
+    name: string;
+    points: number;
+    position: number;
+    wins: number;
+    country: string;
+    color: string;
+}
+
 export interface Race {
     id: number;
     name: string;
