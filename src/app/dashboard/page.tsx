@@ -19,8 +19,9 @@ import {
     Track,
     Session,
     SessionResult,
-    Driver
-} from '@/lib/f1-api'
+    Driver,
+    ApiError
+} from '../../lib/f1-api'
 import axios from 'axios'
 
 export default function RaceDashboard() {
@@ -42,7 +43,7 @@ export default function RaceDashboard() {
 
     // Fetch seasons from the API instead of generating years locally
     useEffect(() => {
-        getAvailableSeasons().then(res => {
+        getAvailableSeasons().then((res: { data: Season[]; error?: ApiError }) => {
             if (res.error) {
                 setError(res.error.message)
                 return
@@ -61,7 +62,7 @@ export default function RaceDashboard() {
         setError(null)
         setIsLoadingTracks(true)
 
-        getTracks(selectedSeason).then(res => {
+        getTracks(selectedSeason).then((res: { data: Track[]; error?: ApiError }) => {
             setIsLoadingTracks(false)
             if (res.error) {
                 setError(res.error.message)
@@ -83,7 +84,7 @@ export default function RaceDashboard() {
         const track = tracks.find(t => t.circuit.toLowerCase() === selectedTrack)
         if (!track) return
 
-        getRaceSessions(selectedSeason, track.id.toString()).then(res => {
+        getRaceSessions(selectedSeason, track.id.toString()).then((res: { data: Session[]; error?: ApiError }) => {
             setIsLoadingSessions(false)
             if (res.error) {
                 setError(res.error.message)
@@ -104,7 +105,7 @@ export default function RaceDashboard() {
         const track = tracks.find(t => t.circuit.toLowerCase() === selectedTrack)
         if (!track) return
 
-        getSessionResults(selectedSeason, track.round.toString(), selectedSession).then(res => {
+        getSessionResults(selectedSeason, track.round.toString(), selectedSession).then((res: { data: SessionResult[]; error?: ApiError }) => {
             setIsLoadingResults(false)
             if (res.error) {
                 setError(res.error.message)
@@ -121,7 +122,7 @@ export default function RaceDashboard() {
         setError(null)
         setIsLoadingDriverStandings(true)
 
-        getDriverStandings(selectedSeason).then(res => {
+        getDriverStandings(selectedSeason).then((res: { data: Driver[]; error?: ApiError }) => {
             setIsLoadingDriverStandings(false)
             if (res.error) {
                 setError(res.error.message)
