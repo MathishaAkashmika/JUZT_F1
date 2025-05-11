@@ -31,21 +31,12 @@ const DriverHighlightCards: React.FC<DriverHighlightCardsProps> = ({
                                 idx === 1 ? 'ring-[#C0C0C0] shadow-[#C0C0C0]/20' :
                                     'ring-[#CD7F32] shadow-[#CD7F32]/20'}`}
                         onClick={() => setSelectedDriver(idx)}
-                    >
-                        {/* Background gradient with position-based color */}
+                    >                        {/* Background gradient with position-based color */}
                         <div className={`absolute inset-0 
                             ${idx === 0 ? 'bg-gradient-to-br from-[#FFD700]/30 to-[#5A4A2A]/80' :
                                 idx === 1 ? 'bg-gradient-to-br from-[#C0C0C0]/30 to-[#4A4A5A]/80' :
                                     'bg-gradient-to-br from-[#CD7F32]/30 to-[#5A3A2A]/80'}`}
                         />
-
-                        {/* Position indicator */}
-                        <div className={`absolute top-4 left-4 w-10 h-10 rounded-full flex items-center justify-center 
-                            ${idx === 0 ? 'bg-[#FFD700] text-black' :
-                                idx === 1 ? 'bg-[#C0C0C0] text-black' :
-                                    'bg-[#CD7F32] text-white'} font-bold text-lg z-20`}>
-                            P{idx + 1}
-                        </div>
 
                         {/* Driver Image Background */}
                         {result.driver.imageUrl && (
@@ -65,7 +56,15 @@ const DriverHighlightCards: React.FC<DriverHighlightCardsProps> = ({
                         <div className="relative flex flex-row justify-between items-center h-[130px] w-full z-10 p-4">
                             <div className="flex flex-col justify-center h-full py-2 pl-8">
                                 <div className="flex flex-col gap-1 mt-1">
-                                    <div className="font-bold text-xl text-white">{result.driver.surname}</div>
+                                    <div className="font-bold text-xl text-white">
+                                        <span className={`mr-2 font-bold
+                                            ${idx === 0 ? 'text-[#FFD700]' :
+                                                idx === 1 ? 'text-[#C0C0C0]' :
+                                                    'text-[#CD7F32]'}`}>
+                                            P{idx + 1}
+                                        </span>
+                                        {result.driver.surname}
+                                    </div>
                                     <div className="text-sm text-gray-300">{result.team.teamName}</div>
                                     <div className={`mt-2 px-3 py-1 rounded-md inline-block w-max 
                                         ${idx === 0 ? 'bg-[#FFD700]/20 text-[#FFD700]' :
