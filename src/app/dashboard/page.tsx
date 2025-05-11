@@ -9,13 +9,15 @@ import {
     getSessionResults,
     getDriverStandings,
     getConstructorChampionship,
+    getDriversByYear,
     Season,
     Track,
     Session,
     SessionResult,
     Driver,
     ConstructorChampionship,
-    ApiError
+    ApiError,
+    ApiResponse
 } from '../../lib/f1-api'
 
 // Import components
@@ -34,7 +36,6 @@ export default function RaceDashboard() {
     const [seasons, setSeasons] = useState<Season[]>([])
     const [tracks, setTracks] = useState<Track[]>([])
     const [sessions, setSessions] = useState<Session[]>([])
-    const [selectedDriver, setSelectedDriver] = useState(0)
     const [isLoadingTracks, setIsLoadingTracks] = useState(false)
     const [isLoadingSessions, setIsLoadingSessions] = useState(false)
     const [error, setError] = useState<string | null>(null)
@@ -44,6 +45,8 @@ export default function RaceDashboard() {
     const [isLoadingDriverStandings, setIsLoadingDriverStandings] = useState(false)
     const [constructorStandings, setConstructorStandings] = useState<ConstructorChampionship[]>([])
     const [isLoadingConstructorStandings, setIsLoadingConstructorStandings] = useState(false)
+    const [drivers, setDrivers] = useState<Driver[]>([])
+    const [isLoadingDrivers, setIsLoadingDrivers] = useState(false)
 
     // Fetch seasons from the API
     useEffect(() => {
@@ -143,15 +146,39 @@ export default function RaceDashboard() {
         setError(null)
         setIsLoadingConstructorStandings(true)
 
-        getConstructorChampionship(selectedSeason).then((res: { data: ConstructorChampionship[]; error?: ApiError }) => {
+        getConstructorChampionship(selectedSeason).then((res: ApiResponse<ConstructorChampionship[]>) => {
             setIsLoadingConstructorStandings(false)
             if (res.error) {
                 setError(res.error.message)
                 return
             }
             setConstructorStandings(res.data)
+        }).catch((error: unknown) => {
+            console.error("Error fetching constructor standings:", error)
+            setIsLoadingConstructorStandings(false)
+            setError("Failed to fetch constructor standings")
         })
     }, [selectedSeason])
+
+    // Fetch drivers when season changes
+    useEffect(() => {
+        if (!selectedSeason) return;
+        setIsLoadingDrivers(true);
+        setError(null);
+
+        getDriversByYear(selectedSeason).then((res: ApiResponse<Driver[]>) => {
+            setIsLoadingDrivers(false);
+            if (res.error) {
+                setError(res.error.message);
+                return;
+            }
+            setDrivers(res.data);
+        }).catch((error: unknown) => {
+            console.error("Error fetching drivers:", error);
+            setIsLoadingDrivers(false);
+            setError("Failed to fetch drivers");
+        });
+    }, [selectedSeason]);
 
     return (
         <div className="min-h-screen bg-gradient-to-b from-[#0F0F1A] via-[#1A1A2E] to-[#0F0F1A] text-white font-mono tracking-wide">
@@ -186,10 +213,8 @@ export default function RaceDashboard() {
 
                 {/* Driver Highlight Cards */}
                 <DriverHighlightCards
-                    sessionResults={sessionResults}
-                    isLoadingResults={isLoadingResults}
-                    selectedDriver={selectedDriver}
-                    setSelectedDriver={setSelectedDriver}
+                    drivers={drivers}
+                    isLoading={isLoadingDrivers}
                 />
 
                 {/* Top Panels + Standings Stacked */}

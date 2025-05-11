@@ -6,47 +6,33 @@ import { ChevronDown, Trophy, ExternalLink } from 'lucide-react'
 import { Driver, Season, ApiError } from '@/lib/f1-api/types'
 import { getDriversByYear } from '@/lib/f1-api/drivers'
 import { getAvailableSeasons } from '@/lib/f1-api'
+import Image from 'next/image'
 
 export default function DriversPage() {
-    const [currentDrivers, setCurrentDrivers] = useState<Driver[]>([]);
-    const [selectedSeason, setSelectedSeason] = useState(new Date().getFullYear().toString());
-    const [availableSeasons, setAvailableSeasons] = useState<Season[]>([]);
+    const [selectedSeason, setSelectedSeason] = useState<string>('2024');
+    const [drivers, setDrivers] = useState<Driver[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const [formattedSeasons, setFormattedSeasons] = useState<string[]>([]);
     const [selectedDriverId, setSelectedDriverId] = useState<string | null>(null);
     const [selectedDriver, setSelectedDriver] = useState<Driver | null>(null);
-    const [isLoadingDrivers, setIsLoadingDrivers] = useState(true);
     const [isLoadingSeasons, setIsLoadingSeasons] = useState(false);
-    const [apiError, setApiError] = useState<string | null>(null);
 
     useEffect(() => {
-        // Fetch drivers from API only
         const fetchDrivers = async () => {
-            setIsLoadingDrivers(true);
-            setApiError(null);
-
+            setIsLoading(true);
+            setError(null);
             try {
-                // Use the selected season
-                const year = selectedSeason;
-
-                // Call our API function
-                const result = await getDriversByYear(year);
-
-                if (result.error) {
-                    console.error("Error fetching drivers:", result.error);
-                    setCurrentDrivers([]);
-                    setApiError(`Couldn't load driver data for ${year}. ${result.error.message || ''}`);
-                } else if (result.data && result.data.length > 0) {
-                    setCurrentDrivers(result.data);
+                const response = await getDriversByYear(selectedSeason);
+                if (response.error) {
+                    setError(response.error.message);
                 } else {
-                    setCurrentDrivers([]);
-                    setApiError(`No driver data available for ${year}.`);
+                    setDrivers(response.data);
                 }
-            } catch (error) {
-                console.error("Error in fetchDrivers:", error);
-                setCurrentDrivers([]);
-                setApiError(`Error loading driver data. Please try again later.`);
+            } catch {
+                setError('Failed to fetch drivers');
             } finally {
-                setIsLoadingDrivers(false);
+                setIsLoading(false);
             }
         };
 
@@ -68,7 +54,6 @@ export default function DriversPage() {
             if (res.data && res.data.length > 0) {
                 // Sort seasons in descending order (newest first)
                 const sortedSeasons = [...res.data].sort((a, b) => b.year - a.year);
-                setAvailableSeasons(sortedSeasons);
 
                 // Format seasons for display in dropdown
                 const availableYears = sortedSeasons.map(s => s.year.toString());
@@ -82,20 +67,20 @@ export default function DriversPage() {
                     setSelectedSeason(uniqueYears[0]);
                 }
             }
-        }).catch(error => {
+        }).catch((error: unknown) => {
             console.error("Error fetching seasons:", error);
             setIsLoadingSeasons(false);
         });
     }, []);
 
     useEffect(() => {
-        if (selectedDriverId && currentDrivers.length > 0) {
-            const driver = currentDrivers.find(d => d.driverId === selectedDriverId) || null
+        if (selectedDriverId && drivers.length > 0) {
+            const driver = drivers.find(d => d.driverId === selectedDriverId) || null
             setSelectedDriver(driver)
         } else {
             setSelectedDriver(null)
         }
-    }, [selectedDriverId, currentDrivers])
+    }, [selectedDriverId, drivers])
 
     // Simple function to get emoji flags based on nationality
     const getCountryFlag = (nationality: string): string => {
@@ -167,16 +152,16 @@ export default function DriversPage() {
                     </div>
                 </div>
 
-                {apiError && (
+                {error && (
                     <div className="bg-yellow-900/30 border border-yellow-700/50 text-yellow-200 px-4 py-3 rounded mb-6 flex items-center">
                         <svg className="h-5 w-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                         </svg>
-                        {apiError}
+                        {error}
                     </div>
                 )}
 
-                {isLoadingDrivers ? (
+                {isLoading ? (
                     <div className="flex justify-center items-center h-64">
                         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
                     </div>
@@ -195,9 +180,10 @@ export default function DriversPage() {
                                 {selectedDriver.imageUrl && (
                                     <div className="absolute inset-0">
                                         <div className="w-full h-full overflow-hidden">
-                                            <img
+                                            <Image
                                                 src={selectedDriver.imageUrl}
                                                 alt={`${selectedDriver.name} ${selectedDriver.surname}`}
+                                                fill
                                                 className="w-full h-full object-cover object-top opacity-60"
                                             />
                                         </div>
@@ -304,62 +290,39 @@ export default function DriversPage() {
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                        {currentDrivers.map((driver) => (
+                        {drivers.map((driver) => (
                             <div
                                 key={driver.driverId}
-                                className="bg-[#1E1E1E] rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] cursor-pointer"
+                                className={`bg-gradient-to-br from-[#1A2A4A] to-[#2A3A6A] rounded-lg p-6 shadow-lg shadow-blue-900/20 cursor-pointer transition-transform hover:scale-105 ${selectedDriverId === driver.driverId ? 'ring-2 ring-purple-500' : ''
+                                    }`}
                                 onClick={() => setSelectedDriverId(driver.driverId)}
                             >
-                                <div className="h-48 bg-gradient-to-br from-[#2A2A2A] to-[#1A1A1A] relative">
-                                    {driver.imageUrl ? (
-                                        <img
-                                            src={driver.imageUrl}
+                                <div className="flex items-center gap-4">
+                                    <div className="relative w-16 h-16 rounded-full overflow-hidden">
+                                        <Image
+                                            src={driver.imageUrl || `/drivers/${driver.shortName?.toLowerCase() || driver.driverId}.png`}
                                             alt={`${driver.name} ${driver.surname}`}
-                                            className="h-full w-full object-cover object-top"
+                                            fill
+                                            className="object-cover"
                                         />
-                                    ) : (
-                                        <div className="h-full w-full flex items-center justify-center">
-                                            <span className="text-3xl font-bold">{driver.shortName}</span>
-                                        </div>
-                                    )}
-
-                                    {driver.position && (
-                                        <div className="absolute top-2 left-2 bg-black/70 px-2 py-1 rounded text-sm font-bold">
-                                            P{driver.position}
-                                        </div>
-                                    )}
-
-                                    {driver.number && (
-                                        <div className="absolute top-2 right-2 bg-black/70 px-2 py-1 rounded text-sm font-bold">
-                                            #{driver.number}
-                                        </div>
-                                    )}
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xl font-bold text-white">{driver.name} {driver.surname}</h3>
+                                        <p className="text-gray-400">{driver.team}</p>
+                                    </div>
                                 </div>
-
-                                <div className="p-4">
-                                    <div className="flex items-center justify-between">
-                                        <h3 className="text-lg font-semibold">{driver.surname}</h3>
-                                        <span className="text-xs bg-purple-900/50 text-purple-200 px-2 py-1 rounded">
-                                            {driver.shortName}
-                                        </span>
+                                <div className="mt-4 flex justify-between items-center">
+                                    <div className="text-gray-400">
+                                        <p>Number: {driver.number}</p>
+                                        <p>Nationality: {driver.nationality}</p>
                                     </div>
-                                    <p className="text-gray-400 text-sm">{driver.name}</p>
-
-                                    <div className="mt-3 flex items-center justify-between">
-                                        <span className="text-xs text-gray-400 flex items-center">
-                                            {getCountryFlag(driver.nationality)} {driver.nationality}
-                                        </span>
-
-                                        {driver.points !== undefined && (
-                                            <span className="text-xs font-medium bg-gray-800 px-2 py-1 rounded">
-                                                {driver.points} PTS
-                                            </span>
-                                        )}
-                                    </div>
-
-                                    <div className="mt-3 pt-3 border-t border-gray-800">
-                                        <p className="text-xs text-gray-400">Team</p>
-                                        <p className="font-medium truncate">{driver.team || "Unknown"}</p>
+                                    <div className="relative w-12 h-12">
+                                        <Image
+                                            src={`/teams/${driver.team?.toLowerCase().replace(/\s+/g, '-')}.png`}
+                                            alt={`${driver.team} logo`}
+                                            fill
+                                            className="object-contain"
+                                        />
                                     </div>
                                 </div>
                             </div>
