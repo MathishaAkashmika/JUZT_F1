@@ -237,23 +237,85 @@ export default function RaceDashboard() {
                     <div className="col-span-3 flex flex-col gap-4">
                         <div className="rounded-xl border border-neutral-700 bg-gradient-to-br from-purple-900 to-purple-700 w-full h-40 flex flex-col">
                             <div className="rounded-t-xl bg-purple-800 text-white text-xs font-bold px-4 py-2 tracking-widest">FASTEST LAP</div>
-                            <div className="flex justify-between items-center px-6 py-4 text-lg">
-                                <span>Driver</span>
-                                <span>Lap Time</span>
-                            </div>
+                            {isLoadingResults ? (
+                                <div className="flex-1 flex items-center justify-center text-white">Loading...</div>
+                            ) : sessionResults.length > 0 ? (
+                                <div className="flex-1 flex flex-col justify-center px-6">
+                                    <div className="flex justify-between items-center mb-2">
+                                        <span className="text-white text-lg font-bold">{sessionResults[0].driver.surname}</span>
+                                        <span className="text-white text-lg">{sessionResults[0].time}</span>
+                                    </div>
+                                    <div className="text-white/80 text-sm">{sessionResults[0].team.teamName}</div>
+                                </div>
+                            ) : (
+                                <div className="flex-1 flex items-center justify-center text-white">No data available</div>
+                            )}
                         </div>
                         <div className="rounded-xl border border-neutral-700 bg-neutral-900 min-h-[200px] p-0 flex flex-col">
-                            <div className="rounded-t-xl bg-neutral-800 text-white text-base font-bold px-4 py-2">2025 Driver Standings</div>
+                            <div className="rounded-t-xl bg-neutral-800 text-white text-base font-bold px-4 py-2">Driver Standings</div>
+                            {isLoadingResults ? (
+                                <div className="flex-1 flex items-center justify-center text-gray-400">Loading...</div>
+                            ) : sessionResults.length > 0 ? (
+                                <div className="flex-1 p-4">
+                                    {sessionResults.map((result, index) => (
+                                        <div key={result.driver.driverId} className="flex items-center justify-between py-2 border-b border-neutral-800 last:border-0">
+                                            <div className="flex items-center gap-3">
+                                                <span className="text-gray-400 w-6">{index + 1}</span>
+                                                <img src={`/team-logos/${result.team.teamId}.png`} alt={result.team.teamName} className="h-6 w-6" />
+                                                <span className="text-white">{result.driver.surname}</span>
+                                            </div>
+                                            <span className="text-gray-400">{result.time}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="flex-1 flex items-center justify-center text-gray-400">No data available</div>
+                            )}
                         </div>
                     </div>
                     {/* Center: Next Session + Constructor Standings */}
                     <div className="col-span-6 flex flex-col gap-4">
                         <div className="rounded-xl border border-neutral-700 bg-gradient-to-br from-red-900 to-red-700 w-full h-40 flex flex-col">
-                            <div className="rounded-t-xl bg-red-800 text-white text-lg font-bold px-4 py-2">R6 - Miami Practice 1</div>
-                            <div className="text-center text-2xl font-bold py-4">08days 03hrs 44mins 45sec</div>
+                            <div className="rounded-t-xl bg-red-800 text-white text-lg font-bold px-4 py-2">
+                                {selectedTrack && selectedSession ? `${selectedTrack.toUpperCase()} - ${selectedSession.toUpperCase()}` : 'Select Session'}
+                            </div>
+                            {isLoadingResults ? (
+                                <div className="flex-1 flex items-center justify-center text-white">Loading...</div>
+                            ) : sessionResults.length > 0 ? (
+                                <div className="flex-1 flex flex-col justify-center items-center">
+                                    <div className="text-white text-2xl font-bold mb-2">Session Results</div>
+                                    <div className="text-white/80 text-lg">
+                                        {sessionResults.length} Drivers Completed
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="flex-1 flex items-center justify-center text-white">No data available</div>
+                            )}
                         </div>
                         <div className="rounded-xl border border-neutral-700 bg-neutral-900 min-h-[200px] p-0 flex flex-col">
-                            <div className="rounded-t-xl bg-neutral-800 text-white text-base font-bold px-4 py-2">2025 Constructor Standings</div>
+                            <div className="rounded-t-xl bg-neutral-800 text-white text-base font-bold px-4 py-2">Constructor Standings</div>
+                            {isLoadingResults ? (
+                                <div className="flex-1 flex items-center justify-center text-gray-400">Loading...</div>
+                            ) : sessionResults.length > 0 ? (
+                                <div className="flex-1 p-4">
+                                    {Array.from(new Set(sessionResults.map(r => r.team.teamId))).map((teamId, index) => {
+                                        const teamResults = sessionResults.filter(r => r.team.teamId === teamId);
+                                        const bestPosition = Math.min(...teamResults.map(r => r.position));
+                                        return (
+                                            <div key={teamId} className="flex items-center justify-between py-2 border-b border-neutral-800 last:border-0">
+                                                <div className="flex items-center gap-3">
+                                                    <span className="text-gray-400 w-6">{index + 1}</span>
+                                                    <img src={`/team-logos/${teamId}.png`} alt={teamResults[0].team.teamName} className="h-6 w-6" />
+                                                    <span className="text-white">{teamResults[0].team.teamName}</span>
+                                                </div>
+                                                <span className="text-gray-400">Best: P{bestPosition}</span>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            ) : (
+                                <div className="flex-1 flex items-center justify-center text-gray-400">No data available</div>
+                            )}
                         </div>
                     </div>
                     {/* Right: Session Results Table */}
@@ -264,16 +326,22 @@ export default function RaceDashboard() {
                             <span>Time</span>
                         </div>
                         <div className="flex flex-col gap-2">
-                            <div className="driver-tree">
-                                {topDrivers.map((result, idx) => (
-                                    <div key={result.driverId} className="driver-box">
-                                        <img src={result.driver?.imageUrl || '/default-driver.png'} alt={result.driver?.name} />
-                                        <div>{result.driver?.name} {result.driver?.surname}</div>
-                                        <div>{result.team?.teamName}</div>
-                                        <div>{result.time}</div>
+                            {isLoadingResults ? (
+                                <div className="text-center text-gray-400 py-4">Loading...</div>
+                            ) : sessionResults.length > 0 ? (
+                                sessionResults.map((result, index) => (
+                                    <div key={result.driver.driverId} className="flex items-center justify-between px-4 py-2 bg-neutral-900 rounded-lg">
+                                        <span className="text-gray-400 w-6">{index + 1}</span>
+                                        <div className="flex items-center gap-2">
+                                            <img src={`/drivers/${result.driver.shortName.toLowerCase()}.png`} alt={result.driver.surname} className="h-6 w-6" />
+                                            <span className="text-white">{result.driver.surname}</span>
+                                        </div>
+                                        <span className="text-gray-400">{result.time}</span>
                                     </div>
-                                ))}
-                            </div>
+                                ))
+                            ) : (
+                                <div className="text-center text-gray-400 py-4">No data available</div>
+                            )}
                         </div>
                     </div>
                 </div>
