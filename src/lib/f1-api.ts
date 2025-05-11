@@ -323,7 +323,12 @@ export const getAvailableSeasons = async (): Promise<{ data: Season[]; error?: A
 
 export const getSessionResults = async (year: string, round: string, session: string): Promise<{ data: SessionResult[]; error?: ApiError }> => {
     try {
-        const response = await axios.get(`${F1_API_BASE_URL}/${year}/${round}/${session}`);
+        // Handle session URL formats
+        const sessionUrl = session === 'sprintQualy' ? 'sprint/qualy' :
+            session === 'sprintRace' ? 'sprint/race' :
+                session === 'qualifying' ? 'qualy' :
+                    session;
+        const response = await axios.get(`${F1_API_BASE_URL}/${year}/${round}/${sessionUrl}`);
         let results: SessionResult[] = [];
 
         switch (session) {
@@ -366,23 +371,31 @@ export const getSessionResults = async (year: string, round: string, session: st
                 }));
                 break;
             case 'sprintQualy':
-                results = response.data.races.sprintQualyResults.map((result: any) => ({
-                    driver: {
-                        driverId: result.driver.driverId,
-                        name: result.driver.name,
-                        surname: result.driver.surname,
-                        shortName: result.driver.shortName,
-                        number: result.driver.number,
-                        nationality: result.driver.nationality
-                    },
-                    team: {
-                        teamId: result.team.teamId,
-                        teamName: result.team.teamName,
-                        nationality: result.team.teamNationality || result.team.nationality
-                    },
-                    time: result.sq3 || result.sq2 || result.sq1 || '-',
-                    position: result.gridPosition
-                }));
+                results = response.data.races.sprintQualyResults.map((result: any) => {
+                    // Clean up qualifying times by removing tab characters
+                    const cleanTime = (time: string | null) => time ? time.replace(/\t/g, '').trim() : null;
+                    const sq3 = cleanTime(result.sq3);
+                    const sq2 = cleanTime(result.sq2);
+                    const sq1 = cleanTime(result.sq1);
+
+                    return {
+                        driver: {
+                            driverId: result.driver.driverId,
+                            name: result.driver.name,
+                            surname: result.driver.surname,
+                            shortName: result.driver.shortName,
+                            number: result.driver.number,
+                            nationality: result.driver.nationality
+                        },
+                        team: {
+                            teamId: result.team.teamId,
+                            teamName: result.team.teamName,
+                            nationality: result.team.teamNationality || result.team.nationality
+                        },
+                        time: sq3 || sq2 || sq1 || '-',
+                        position: result.gridPosition
+                    };
+                });
                 break;
             case 'sprintRace':
                 results = response.data.races.sprintRaceResults.map((result: any) => ({
@@ -400,7 +413,9 @@ export const getSessionResults = async (year: string, round: string, session: st
                         nationality: result.team.teamNationality || result.team.nationality
                     },
                     time: result.time || result.fastLap || '-',
-                    position: result.position
+                    position: result.position,
+                    points: result.points || 0,
+                    gridPosition: result.gridPosition
                 }));
                 break;
             default: // Practice sessions (fp1, fp2, fp3)
