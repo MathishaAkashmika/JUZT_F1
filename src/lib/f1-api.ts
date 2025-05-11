@@ -146,19 +146,23 @@ export const getCurrentDrivers = async (): Promise<{ data: Driver[]; error?: Api
 
 export const getDriverStandings = async (year: string): Promise<{ data: Driver[]; error?: ApiError }> => {
     try {
-        const response = await axios.get(`${F1_API_BASE_URL}/${year}/drivers`);
-        const drivers = await Promise.all(
-            response.data.drivers.map(async (driver: any) => {
-                const details = await getDriverDetails(driver.driverId);
-                return {
-                    ...details.data,
-                    team: driver.teamId,
-                    teamColor: driver.teamColor || '#000000',
-                    position: driver.position,
-                    points: driver.points,
-                };
-            })
-        );
+        const response = await axios.get(`${F1_API_BASE_URL}/${year}/drivers-championship`);
+        const drivers = response.data.drivers_championship.map((item: any) => ({
+            driverId: item.driverId,
+            name: item.driver.name,
+            surname: item.driver.surname,
+            nationality: item.driver.nationality,
+            birthday: item.driver.birthday,
+            number: item.driver.number,
+            shortName: item.driver.shortName,
+            url: item.driver.url,
+            team: item.teamId,
+            teamColor: '#000000', // Default color, could be enhanced
+            position: item.position,
+            points: item.points,
+            wins: item.wins || 0,
+            imageUrl: `/drivers/${item.driver.shortName?.toLowerCase() || item.driverId}.png`,
+        }));
         return { data: drivers };
     } catch (error) {
         return { data: [], error: handleApiError(error) };
@@ -442,4 +446,4 @@ export const getSessionResults = async (year: string, round: string, session: st
     } catch (error) {
         return { data: [], error: handleApiError(error) };
     }
-}; 
+};

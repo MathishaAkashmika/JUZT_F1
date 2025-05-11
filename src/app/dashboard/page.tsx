@@ -14,10 +14,12 @@ import {
     getTracks,
     getRaceSessions,
     getSessionResults,
+    getDriverStandings,
     Season,
     Track,
     Session,
-    SessionResult
+    SessionResult,
+    Driver
 } from '@/lib/f1-api'
 import axios from 'axios'
 
@@ -35,6 +37,8 @@ export default function RaceDashboard() {
     const [topDrivers, setTopDrivers] = useState<any[]>([])
     const [sessionResults, setSessionResults] = useState<SessionResult[]>([])
     const [isLoadingResults, setIsLoadingResults] = useState(false)
+    const [driverStandings, setDriverStandings] = useState<Driver[]>([])
+    const [isLoadingDriverStandings, setIsLoadingDriverStandings] = useState(false)
 
     // Fetch seasons from the API instead of generating years locally
     useEffect(() => {
@@ -110,6 +114,23 @@ export default function RaceDashboard() {
         })
     }, [selectedSession, selectedTrack, selectedSeason, tracks])
 
+    // Fetch driver standings when season changes
+    useEffect(() => {
+        if (!selectedSeason) return
+        setDriverStandings([])
+        setError(null)
+        setIsLoadingDriverStandings(true)
+
+        getDriverStandings(selectedSeason).then(res => {
+            setIsLoadingDriverStandings(false)
+            if (res.error) {
+                setError(res.error.message)
+                return
+            }
+            setDriverStandings(res.data)
+        })
+    }, [selectedSeason])
+
     // Format date and time for display
     const formatSessionDateTime = (session: Session) => {
         const date = new Date(`${session.date}T${session.time}`);
@@ -131,7 +152,7 @@ export default function RaceDashboard() {
     };
 
     return (
-        <div className="min-h-screen bg-black text-white font-mono tracking-wide">
+        <div className="min-h-screen bg-gradient-to-b from-[#0F0F1A] via-[#1A1A2E] to-[#0F0F1A] text-white font-mono tracking-wide">
             <Navbar />
             <div className="w-full flex flex-col items-center gap-4 py-8 px-4">
                 {/* Error message */}
@@ -144,15 +165,15 @@ export default function RaceDashboard() {
                 {/* Dropdowns */}
                 <div className="flex flex-row gap-8 w-full justify-center items-center mt-4 mb-6">
                     <Select value={selectedSeason} onValueChange={setSelectedSeason}>
-                        <SelectTrigger className="w-40 rounded-xl bg-neutral-900 border border-neutral-700 text-base py-2.5 px-4 font-mono flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-purple-600">
+                        <SelectTrigger className="w-40 rounded-xl bg-[#1E1E3A] border border-[#4A4AFF]/30 text-base py-2.5 px-4 font-mono flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-[#6A5ACD]">
                             <SelectValue placeholder="Year" />
                         </SelectTrigger>
-                        <SelectContent className="bg-neutral-700 border border-neutral-500 rounded-xl text-lg font-bold text-gray-200">
+                        <SelectContent className="bg-[#1E1E3A] border border-[#4A4AFF]/30 rounded-xl text-lg font-bold text-gray-200">
                             {seasons.map((season) => (
                                 <SelectItem
                                     key={season.year}
                                     value={season.year.toString()}
-                                    className="hover:bg-neutral-600 focus:bg-neutral-600 rounded-full px-4 py-2 transition-all"
+                                    className="hover:bg-[#2D2D5A] focus:bg-[#2D2D5A] rounded-full px-4 py-2 transition-all"
                                 >
                                     {season.year}
                                 </SelectItem>
@@ -160,15 +181,15 @@ export default function RaceDashboard() {
                         </SelectContent>
                     </Select>
                     <Select value={selectedTrack} onValueChange={setSelectedTrack} disabled={isLoadingTracks || !selectedSeason}>
-                        <SelectTrigger className="w-64 rounded-xl bg-neutral-900 border border-neutral-700 text-base py-2.5 px-4 font-mono flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-purple-600">
+                        <SelectTrigger className="w-64 rounded-xl bg-[#1E1E3A] border border-[#4A4AFF]/30 text-base py-2.5 px-4 font-mono flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-[#6A5ACD]">
                             <SelectValue placeholder={isLoadingTracks ? "Loading..." : "Track"} />
                         </SelectTrigger>
-                        <SelectContent className="bg-neutral-700 border border-neutral-500 rounded-xl text-lg font-bold text-gray-200">
+                        <SelectContent className="bg-[#1E1E3A] border border-[#4A4AFF]/30 rounded-xl text-lg font-bold text-gray-200">
                             {tracks.map((track) => (
                                 <SelectItem
                                     key={track.id}
                                     value={track.circuit.toLowerCase()}
-                                    className="hover:bg-neutral-600 focus:bg-neutral-600 rounded-full px-4 py-2 transition-all"
+                                    className="hover:bg-[#2D2D5A] focus:bg-[#2D2D5A] rounded-full px-4 py-2 transition-all"
                                 >
                                     {track.circuit} ({track.country})
                                 </SelectItem>
@@ -176,15 +197,15 @@ export default function RaceDashboard() {
                         </SelectContent>
                     </Select>
                     <Select value={selectedSession} onValueChange={setSelectedSession} disabled={isLoadingSessions || !selectedTrack}>
-                        <SelectTrigger className="w-40 rounded-xl bg-neutral-900 border border-neutral-700 text-base py-2.5 px-4 font-mono flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-purple-600">
+                        <SelectTrigger className="w-40 rounded-xl bg-[#1E1E3A] border border-[#4A4AFF]/30 text-base py-2.5 px-4 font-mono flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-[#6A5ACD]">
                             <SelectValue placeholder={isLoadingSessions ? "Loading..." : "Session"} />
                         </SelectTrigger>
-                        <SelectContent className="bg-neutral-700 border border-neutral-500 rounded-xl text-lg font-bold text-gray-200">
+                        <SelectContent className="bg-[#1E1E3A] border border-[#4A4AFF]/30 rounded-xl text-lg font-bold text-gray-200">
                             {sessions.map((session) => (
                                 <SelectItem
                                     key={session.id}
                                     value={session.type}
-                                    className="hover:bg-neutral-600 focus:bg-neutral-600 rounded-full px-4 py-2 transition-all"
+                                    className="hover:bg-[#2D2D5A] focus:bg-[#2D2D5A] rounded-full px-4 py-2 transition-all"
                                 >
                                     {session.type.toUpperCase()}
                                 </SelectItem>
@@ -196,16 +217,25 @@ export default function RaceDashboard() {
                 {/* Driver Highlight Cards */}
                 <div className="grid grid-cols-3 gap-4 w-full mb-2">
                     {isLoadingResults ? (
-                        <div className="col-span-3 text-center text-gray-400 py-8">Loading results...</div>
+                        <div className="col-span-3 text-center text-gray-400 py-8">
+                            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#6A5ACD] mx-auto mb-2"></div>
+                            Loading results...
+                        </div>
                     ) : sessionResults.length > 0 ? (
                         sessionResults.slice(0, 3).map((result, idx) => (
                             <div
                                 key={result.driver.driverId}
-                                className={`relative rounded-xl border bg-neutral-900 flex items-end h-24 overflow-hidden cursor-pointer transition-all duration-150 ${selectedDriver === idx ? 'border-2 border-blue-500' : 'border border-neutral-700'}`}
+                                className={`relative rounded-xl border bg-gradient-to-br ${
+                                    idx === 0 ? 'from-[#FFD700]/20 to-[#FFD700]/5' : 
+                                    idx === 1 ? 'from-[#C0C0C0]/20 to-[#C0C0C0]/5' : 
+                                    'from-[#CD7F32]/20 to-[#CD7F32]/5'
+                                } flex items-end h-24 overflow-hidden cursor-pointer transition-all duration-150 ${
+                                    selectedDriver === idx ? 
+                                    `border-2 ${idx === 0 ? 'border-[#FFD700]' : idx === 1 ? 'border-[#C0C0C0]' : 'border-[#CD7F32]'}` : 
+                                    'border border-neutral-700'
+                                }`}
                                 onClick={() => setSelectedDriver(idx)}
                             >
-                                {/* Car image as background */}
-                                <img src={`/cars/${result.team.teamId}.png`} alt="car" className="absolute left-0 top-0 h-full w-full object-cover opacity-90" style={{ zIndex: 1 }} />
                                 {/* Overlay for darkening */}
                                 <div className="absolute left-0 top-0 h-full w-full bg-black/40" style={{ zIndex: 2 }} />
                                 {/* Content */}
@@ -216,11 +246,14 @@ export default function RaceDashboard() {
                                             <span className="text-[10px] text-gray-300 leading-none block">{result.team.teamName}</span>
                                             <span className="text-[10px] text-gray-400 leading-none block mt-1">{result.time}</span>
                                         </div>
-                                        <img src={`/team-logos/${result.team.teamId}.png`} alt="team logo" className="h-6 w-6 object-contain mt-2" />
                                     </div>
                                     <div className="flex items-end h-full">
-                                        <div className="h-16 w-16 rounded-lg overflow-hidden border-2 border-white bg-black/60 flex items-end justify-end">
-                                            <img src={`/drivers/${result.driver.shortName.toLowerCase()}.png`} alt="driver" className="h-full w-full object-contain" />
+                                        <div className={`h-16 w-16 rounded-lg overflow-hidden border-2 ${
+                                            idx === 0 ? 'border-[#FFD700] bg-[#FFD700]/20' : 
+                                            idx === 1 ? 'border-[#C0C0C0] bg-[#C0C0C0]/20' : 
+                                            'border-[#CD7F32] bg-[#CD7F32]/20'
+                                        } flex items-center justify-center`}>
+                                            <span className="text-white text-xs font-bold">{result.driver.shortName}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -235,10 +268,12 @@ export default function RaceDashboard() {
                 <div className="grid grid-cols-12 gap-4 w-full">
                     {/* Left: Fastest Lap + Driver Standings */}
                     <div className="col-span-3 flex flex-col gap-4">
-                        <div className="rounded-xl border border-neutral-700 bg-gradient-to-br from-purple-900 to-purple-700 w-full h-40 flex flex-col">
-                            <div className="rounded-t-xl bg-purple-800 text-white text-xs font-bold px-4 py-2 tracking-widest">FASTEST LAP</div>
+                        <div className="rounded-xl border border-[#9A4AFF]/30 bg-gradient-to-br from-[#6A1B9A] to-[#9C27B0] w-full h-40 flex flex-col shadow-lg shadow-purple-900/20">
+                            <div className="rounded-t-xl bg-[#8E24AA] text-white text-xs font-bold px-4 py-2 tracking-widest">FASTEST LAP</div>
                             {isLoadingResults ? (
-                                <div className="flex-1 flex items-center justify-center text-white">Loading...</div>
+                                <div className="flex-1 flex items-center justify-center text-white">
+                                    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-white"></div>
+                                </div>
                             ) : sessionResults.length > 0 ? (
                                 <div className="flex-1 flex flex-col justify-center px-6">
                                     <div className="flex justify-between items-center mb-2">
@@ -251,36 +286,69 @@ export default function RaceDashboard() {
                                 <div className="flex-1 flex items-center justify-center text-white">No data available</div>
                             )}
                         </div>
-                        <div className="rounded-xl border border-neutral-700 bg-neutral-900 min-h-[200px] p-0 flex flex-col">
-                            <div className="rounded-t-xl bg-neutral-800 text-white text-base font-bold px-4 py-2">Driver Standings</div>
-                            {isLoadingResults ? (
-                                <div className="flex-1 flex items-center justify-center text-gray-400">Loading...</div>
-                            ) : sessionResults.length > 0 ? (
+                        
+                        {/* Championship Standings */}
+                        <div className="rounded-xl border border-[#4A90FF]/30 bg-gradient-to-br from-[#1A2A4A] to-[#2A3A6A] min-h-[200px] p-0 flex flex-col shadow-lg shadow-blue-900/20">
+                            <div className="rounded-t-xl bg-[#2A4A8A] text-white text-base font-bold px-4 py-2">
+                                {selectedSeason} Championship Standings
+                            </div>
+                            {isLoadingDriverStandings ? (
+                                <div className="flex-1 flex items-center justify-center text-gray-400">
+                                    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#4A90FF]"></div>
+                                </div>
+                            ) : driverStandings.length > 0 ? (
                                 <div className="flex-1 p-4">
-                                    {sessionResults.map((result, index) => (
-                                        <div key={result.driver.driverId} className="flex items-center justify-between py-2 border-b border-neutral-800 last:border-0">
+                                    {driverStandings.slice(0, 10).map((driver, index) => (
+                                        <div key={driver.driverId} className={`flex items-center justify-between py-2 border-b border-[#3A4A7A]/30 last:border-0 ${
+                                            index === 0 ? 'bg-[#FFD700]/10' : 
+                                            index === 1 ? 'bg-[#C0C0C0]/10' : 
+                                            index === 2 ? 'bg-[#CD7F32]/10' : 
+                                            ''
+                                        }`}>
                                             <div className="flex items-center gap-3">
-                                                <span className="text-gray-400 w-6">{index + 1}</span>
-                                                <img src={`/team-logos/${result.team.teamId}.png`} alt={result.team.teamName} className="h-6 w-6" />
-                                                <span className="text-white">{result.driver.surname}</span>
+                                                <span className={`w-6 font-bold ${
+                                                    index === 0 ? 'text-[#FFD700]' : 
+                                                    index === 1 ? 'text-[#C0C0C0]' : 
+                                                    index === 2 ? 'text-[#CD7F32]' : 
+                                                    'text-gray-400'
+                                                }`}>P{driver.position}</span>
+                                                <div className={`h-6 w-6 rounded-full flex items-center justify-center ${
+                                                    index === 0 ? 'bg-[#FFD700]/30' : 
+                                                    index === 1 ? 'bg-[#C0C0C0]/30' : 
+                                                    index === 2 ? 'bg-[#CD7F32]/30' : 
+                                                    'bg-[#3A4A7A]'
+                                                }`}>
+                                                    <span className="text-xs text-white">{driver.shortName?.substring(0, 2) || driver.driverId.substring(0, 2)}</span>
+                                                </div>
+                                                <span className="text-white">{driver.surname}</span>
                                             </div>
-                                            <span className="text-gray-400">{result.time}</span>
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-gray-400">{driver.points} pts</span>
+                                                {driver.wins > 0 && (
+                                                    <span className="text-yellow-500 text-xs">({driver.wins}W)</span>
+                                                )}
+                                            </div>
                                         </div>
                                     ))}
                                 </div>
                             ) : (
-                                <div className="flex-1 flex items-center justify-center text-gray-400">No data available</div>
+                                <div className="flex-1 flex items-center justify-center text-gray-400">
+                                    No championship data available
+                                </div>
                             )}
                         </div>
                     </div>
+                    
                     {/* Center: Next Session + Constructor Standings */}
                     <div className="col-span-6 flex flex-col gap-4">
-                        <div className="rounded-xl border border-neutral-700 bg-gradient-to-br from-red-900 to-red-700 w-full h-40 flex flex-col">
-                            <div className="rounded-t-xl bg-red-800 text-white text-lg font-bold px-4 py-2">
+                        <div className="rounded-xl border border-[#FF4A4A]/30 bg-gradient-to-br from-[#9A1A1A] to-[#C72C2C] w-full h-40 flex flex-col shadow-lg shadow-red-900/20">
+                            <div className="rounded-t-xl bg-[#B71C1C] text-white text-lg font-bold px-4 py-2">
                                 {selectedTrack && selectedSession ? `${selectedTrack.toUpperCase()} - ${selectedSession.toUpperCase()}` : 'Select Session'}
                             </div>
                             {isLoadingResults ? (
-                                <div className="flex-1 flex items-center justify-center text-white">Loading...</div>
+                                <div className="flex-1 flex items-center justify-center text-white">
+                                    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-white"></div>
+                                </div>
                             ) : sessionResults.length > 0 ? (
                                 <div className="flex-1 flex flex-col justify-center items-center">
                                     <div className="text-white text-2xl font-bold mb-2">Session Results</div>
@@ -292,20 +360,39 @@ export default function RaceDashboard() {
                                 <div className="flex-1 flex items-center justify-center text-white">No data available</div>
                             )}
                         </div>
-                        <div className="rounded-xl border border-neutral-700 bg-neutral-900 min-h-[200px] p-0 flex flex-col">
-                            <div className="rounded-t-xl bg-neutral-800 text-white text-base font-bold px-4 py-2">Constructor Standings</div>
+                        <div className="rounded-xl border border-[#4AFF4A]/30 bg-gradient-to-br from-[#1A4A1A] to-[#2A6A2A] min-h-[200px] p-0 flex flex-col shadow-lg shadow-green-900/20">
+                            <div className="rounded-t-xl bg-[#2A8A2A] text-white text-base font-bold px-4 py-2">Constructor Standings</div>
                             {isLoadingResults ? (
-                                <div className="flex-1 flex items-center justify-center text-gray-400">Loading...</div>
+                                <div className="flex-1 flex items-center justify-center text-gray-400">
+                                    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#4AFF4A]"></div>
+                                </div>
                             ) : sessionResults.length > 0 ? (
                                 <div className="flex-1 p-4">
                                     {Array.from(new Set(sessionResults.map(r => r.team.teamId))).map((teamId, index) => {
                                         const teamResults = sessionResults.filter(r => r.team.teamId === teamId);
                                         const bestPosition = Math.min(...teamResults.map(r => r.position));
                                         return (
-                                            <div key={teamId} className="flex items-center justify-between py-2 border-b border-neutral-800 last:border-0">
+                                            <div key={teamId} className={`flex items-center justify-between py-2 border-b border-[#3A7A3A]/30 last:border-0 ${
+                                                index === 0 ? 'bg-[#FFD700]/10' : 
+                                                index === 1 ? 'bg-[#C0C0C0]/10' : 
+                                                index === 2 ? 'bg-[#CD7F32]/10' : 
+                                                ''
+                                            }`}>
                                                 <div className="flex items-center gap-3">
-                                                    <span className="text-gray-400 w-6">{index + 1}</span>
-                                                    <img src={`/team-logos/${teamId}.png`} alt={teamResults[0].team.teamName} className="h-6 w-6" />
+                                                    <span className={`w-6 font-bold ${
+                                                        index === 0 ? 'text-[#FFD700]' : 
+                                                        index === 1 ? 'text-[#C0C0C0]' : 
+                                                        index === 2 ? 'text-[#CD7F32]' : 
+                                                        'text-gray-400'
+                                                    }`}>{index + 1}</span>
+                                                    <div className={`h-6 w-6 rounded-full flex items-center justify-center ${
+                                                        index === 0 ? 'bg-[#FFD700]/30' : 
+                                                        index === 1 ? 'bg-[#C0C0C0]/30' : 
+                                                        index === 2 ? 'bg-[#CD7F32]/30' : 
+                                                        'bg-[#3A7A3A]'
+                                                    }`}>
+                                                        <span className="text-xs text-white">{teamId.substring(0, 2).toUpperCase()}</span>
+                                                    </div>
                                                     <span className="text-white">{teamResults[0].team.teamName}</span>
                                                 </div>
                                                 <span className="text-gray-400">Best: P{bestPosition}</span>
@@ -318,40 +405,50 @@ export default function RaceDashboard() {
                             )}
                         </div>
                     </div>
+                    
                     {/* Right: Session Results Table */}
-                    <div className="col-span-3 flex flex-col">
-                        <div className="flex justify-between px-4 py-2 bg-neutral-800 text-white text-base font-bold rounded-full mb-2">
-                            <span>Pos</span>
-                            <span>Driver</span>
-                            <span>Time</span>
-                        </div>
-                        <div className="flex flex-col gap-2">
+                    <div className="col-span-3 flex flex-col gap-4">
+                        <div className="rounded-xl border border-[#FF9A4A]/30 bg-gradient-to-br from-[#4A2A1A] to-[#6A3A2A] min-h-[200px] p-0 flex flex-col shadow-lg shadow-orange-900/20">
+                            <div className="rounded-t-xl bg-[#8A4A2A] text-white text-base font-bold px-4 py-2">Session Results</div>
                             {isLoadingResults ? (
-                                <div className="text-center text-gray-400 py-4">Loading...</div>
+                                <div className="flex-1 flex items-center justify-center text-gray-400">
+                                    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#FF9A4A]"></div>
+                                </div>
                             ) : sessionResults.length > 0 ? (
-                                sessionResults.map((result, index) => (
-                                    <div key={result.driver.driverId} className="flex items-center justify-between px-4 py-2 bg-neutral-900 rounded-lg">
-                                        <span className="text-gray-400 w-6">{index + 1}</span>
-                                        <div className="flex items-center gap-2">
-                                            <img src={`/drivers/${result.driver.shortName.toLowerCase()}.png`} alt={result.driver.surname} className="h-6 w-6" />
-                                            <span className="text-white">{result.driver.surname}</span>
+                                <div className="flex-1 p-4">
+                                    {sessionResults.map((result, index) => (
+                                        <div key={result.driver.driverId} className={`flex items-center justify-between py-2 border-b border-[#7A5A3A]/30 last:border-0 ${
+                                            index === 0 ? 'bg-[#FFD700]/10' : 
+                                            index === 1 ? 'bg-[#C0C0C0]/10' : 
+                                            index === 2 ? 'bg-[#CD7F32]/10' : 
+                                            index % 2 === 0 ? 'bg-[#6A3A2A]/50' : ''
+                                        }`}>
+                                            <div className="flex items-center gap-3">
+                                                <span className={`w-6 font-bold ${
+                                                    index === 0 ? 'text-[#FFD700]' : 
+                                                    index === 1 ? 'text-[#C0C0C0]' : 
+                                                    index === 2 ? 'text-[#CD7F32]' : 
+                                                    'text-gray-400'
+                                                }`}>P{result.position}</span>
+                                                <div className={`h-6 w-6 rounded-full flex items-center justify-center ${
+                                                    index === 0 ? 'bg-[#FFD700]/30' : 
+                                                    index === 1 ? 'bg-[#C0C0C0]/30' : 
+                                                    index === 2 ? 'bg-[#CD7F32]/30' : 
+                                                    'bg-[#7A5A3A]'
+                                                }`}>
+                                                    <span className="text-xs text-white">{result.driver.shortName}</span>
+                                                </div>
+                                                <span className="text-white">{result.driver.surname}</span>
+                                            </div>
+                                            <span className="text-gray-400">{result.time}</span>
                                         </div>
-                                        <span className="text-gray-400">{result.time}</span>
-                                    </div>
-                                ))
+                                    ))}
+                                </div>
                             ) : (
-                                <div className="text-center text-gray-400 py-4">No data available</div>
+                                <div className="flex-1 flex items-center justify-center text-gray-400">No data available</div>
                             )}
                         </div>
                     </div>
-                </div>
-
-                {/* Charts */}
-                <div className="rounded-xl border border-neutral-700 bg-neutral-900 min-h-[200px] mt-4 p-0 w-full flex flex-col">
-                    <div className="rounded-t-xl bg-neutral-800 text-white text-base font-bold px-4 py-2">Laps Chart</div>
-                </div>
-                <div className="rounded-xl border border-neutral-700 bg-neutral-900 min-h-[200px] mt-4 p-0 w-full flex flex-col">
-                    <div className="rounded-t-xl bg-neutral-800 text-white text-base font-bold px-4 py-2">Tyre Strategy</div>
                 </div>
             </div>
         </div>
