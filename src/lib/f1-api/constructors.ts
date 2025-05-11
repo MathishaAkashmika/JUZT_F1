@@ -1,57 +1,36 @@
 import axios from 'axios';
-import { Constructor, handleApiError, ConstructorChampionshipResponse, ApiResponse, ConstructorResponse, ConstructorChampionship } from './types';
+import { Constructor, ApiError, handleApiError, ConstructorChampionship } from './types';
 import { F1_API_BASE_URL } from './utils';
 
-export const getConstructorDetails = async (constructorId: string): Promise<ApiResponse<Constructor>> => {
+export const getConstructorStandings = async (year: string): Promise<{ data: Constructor[]; error?: ApiError }> => {
     try {
-        const response = await axios.get<{ constructors: ConstructorResponse[] }>(`${F1_API_BASE_URL}/constructors/${constructorId}`);
-        const constructorData = response.data.constructors[0];
-
-        return {
-            data: {
-                ...constructorData,
-                logoUrl: `/constructors/${constructorData.name.toLowerCase().replace(/\s+/g, '-')}.png`,
-            }
-        };
-    } catch (error) {
-        return { data: {} as Constructor, error: handleApiError(error) };
-    }
-};
-
-export const getCurrentConstructors = async (): Promise<ApiResponse<Constructor[]>> => {
-    try {
-        const response = await axios.get<{ constructors: ConstructorResponse[] }>(`${F1_API_BASE_URL}/current/constructors`);
-
-        const constructors = await Promise.all(
-            response.data.constructors.map(async (constructor: ConstructorResponse) => {
-                const details = await getConstructorDetails(constructor.id.toString());
-                return {
-                    ...details.data,
-                    logoUrl: `/constructors/${constructor.name.toLowerCase().replace(/\s+/g, '-')}.png`,
-                };
-            })
-        );
+        const response = await axios.get(`${F1_API_BASE_URL}/${year}/constructors`);
+        const constructors = response.data.data.map((constructor: any) => ({
+            id: constructor.id,
+            name: constructor.name,
+            color: constructor.color || '#000000',
+            logoUrl: `/team-logos/${constructor.name.toLowerCase()}.png`,
+            points: constructor.points,
+            position: constructor.position,
+        }));
         return { data: constructors };
     } catch (error) {
         return { data: [], error: handleApiError(error) };
     }
 };
 
-export const getConstructorChampionship = async (year: string): Promise<ApiResponse<ConstructorChampionship[]>> => {
+export const getConstructorChampionship = async (year: string): Promise<{ data: ConstructorChampionship[]; error?: ApiError }> => {
     try {
-        const response = await axios.get<ConstructorChampionshipResponse>(`${F1_API_BASE_URL}/${year}/constructors-championship`);
-
-        // Transform the API response to match our ConstructorChampionship interface
-        const constructors: ConstructorChampionship[] = response.data.constructors_championship.map((standing) => ({
-            id: standing.teamId,
-            name: standing.team.teamName,
-            points: standing.points,
-            position: standing.position,
-            wins: standing.wins,
-            country: standing.team.country,
-            color: getTeamColor(standing.teamId)
+        const response = await axios.get(`${F1_API_BASE_URL}/${year}/constructors-championship`);
+        const constructors = response.data.constructors_championship.map((constructor: any) => ({
+            id: constructor.teamId,
+            name: constructor.team.teamName,
+            points: constructor.points,
+            position: constructor.position,
+            wins: constructor.wins,
+            country: constructor.team.country,
+            color: getTeamColor(constructor.teamId)
         }));
-
         return { data: constructors };
     } catch (error) {
         return { data: [], error: handleApiError(error) };

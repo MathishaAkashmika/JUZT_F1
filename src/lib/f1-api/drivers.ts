@@ -1,10 +1,10 @@
 import axios from 'axios';
-import { Driver, handleApiError, DriverChampionshipResponse, ApiResponse, DriverResponse } from './types';
+import { Driver, ApiError, handleApiError } from './types';
 import { F1_API_BASE_URL, getOpenF1Drivers } from './utils';
 
-export const getDriverDetails = async (driverId: string): Promise<ApiResponse<Driver>> => {
+export const getDriverDetails = async (driverId: string): Promise<{ data: Driver; error?: ApiError }> => {
     try {
-        const response = await axios.get<{ drivers: DriverResponse[] }>(`${F1_API_BASE_URL}/drivers/${driverId}`);
+        const response = await axios.get(`${F1_API_BASE_URL}/drivers/${driverId}`);
         const driverData = response.data.drivers[0];
 
         // Get OpenF1 driver data for headshot
@@ -23,16 +23,16 @@ export const getDriverDetails = async (driverId: string): Promise<ApiResponse<Dr
     }
 };
 
-export const getCurrentDrivers = async (): Promise<ApiResponse<Driver[]>> => {
+export const getCurrentDrivers = async (): Promise<{ data: Driver[]; error?: ApiError }> => {
     try {
-        const response = await axios.get<{ drivers: DriverResponse[] }>(`${F1_API_BASE_URL}/current/drivers`);
+        const response = await axios.get(`${F1_API_BASE_URL}/current/drivers`);
 
         // Get OpenF1 driver data for headshots
         const openF1Response = await getOpenF1Drivers();
         const openF1Drivers = openF1Response.data || [];
 
         const drivers = await Promise.all(
-            response.data.drivers.map(async (driver: DriverResponse) => {
+            response.data.drivers.map(async (driver: any) => {
                 const details = await getDriverDetails(driver.driverId);
                 const openF1Driver = openF1Drivers.find(d => d.name_acronym === details.data.shortName);
 
@@ -40,6 +40,8 @@ export const getCurrentDrivers = async (): Promise<ApiResponse<Driver[]>> => {
                     ...details.data,
                     team: driver.teamId,
                     teamColor: driver.teamColor || '#000000',
+                    position: driver.position,
+                    points: driver.points,
                     imageUrl: openF1Driver?.headshot_url || `/drivers/${details.data.shortName?.toLowerCase() || details.data.driverId}.png`,
                 };
             })
@@ -50,12 +52,12 @@ export const getCurrentDrivers = async (): Promise<ApiResponse<Driver[]>> => {
     }
 };
 
-export const getDriverStandings = async (year: string): Promise<ApiResponse<Driver[]>> => {
+export const getDriverStandings = async (year: string): Promise<{ data: Driver[]; error?: ApiError }> => {
     try {
-        const response = await axios.get<DriverChampionshipResponse>(`${F1_API_BASE_URL}/${year}/drivers-championship`);
+        const response = await axios.get(`${F1_API_BASE_URL}/${year}/drivers-championship`);
 
         // Transform the API response to match our Driver interface
-        const drivers: Driver[] = response.data.drivers_championship.map((standing) => ({
+        const drivers: Driver[] = response.data.drivers_championship.map((standing: any) => ({
             driverId: standing.driverId,
             name: standing.driver.name,
             surname: standing.driver.surname,
@@ -82,12 +84,12 @@ export const getDriverStandings = async (year: string): Promise<ApiResponse<Driv
  * @param year - The year to fetch drivers for (e.g., "2023")
  * @returns Promise containing driver data or error
  */
-export const getDriversByYear = async (year: string): Promise<ApiResponse<Driver[]>> => {
+export const getDriversByYear = async (year: string): Promise<{ data: Driver[]; error?: ApiError }> => {
     try {
-        const response = await axios.get<{ drivers: DriverResponse[] }>(`${F1_API_BASE_URL}/${year}/drivers`);
+        const response = await axios.get(`${F1_API_BASE_URL}/${year}/drivers`);
 
         // Transform the API response to match our Driver interface
-        const drivers: Driver[] = response.data.drivers.map((driver: DriverResponse) => ({
+        const drivers: Driver[] = response.data.drivers.map((driver: any) => ({
             driverId: driver.driverId,
             name: driver.name,
             surname: driver.surname,
@@ -96,7 +98,8 @@ export const getDriversByYear = async (year: string): Promise<ApiResponse<Driver
             number: driver.number,
             shortName: driver.shortName,
             url: driver.url,
-            team: driver.teamId,
+            team: driver.teamId, // Map teamId to team
+            // Additional fields will be populated by other API calls if needed
             imageUrl: undefined,
             position: undefined,
             points: undefined,

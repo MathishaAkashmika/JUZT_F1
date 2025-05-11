@@ -1,25 +1,26 @@
 import axios from 'axios';
-import { Track, handleApiError, ApiResponse, TrackResponse } from './types';
+import { Track, ApiError, handleApiError } from './types';
 import { F1_API_BASE_URL } from './utils';
 
-export const getTracksByYear = async (year: string): Promise<ApiResponse<Track[]>> => {
+export const getTracks = async (year: string): Promise<{ data: Track[]; error?: ApiError }> => {
     try {
-        const response = await axios.get<{ tracks: TrackResponse[] }>(`${F1_API_BASE_URL}/${year}/tracks`);
-
-        // Transform the API response to match our Track interface
-        const tracks: Track[] = response.data.tracks.map((track: TrackResponse) => ({
-            id: track.id,
-            name: track.name,
-            circuit: track.circuit,
-            country: track.country,
-            city: track.city,
-            length: track.length,
-            laps: track.laps,
-            firstGrandPrix: track.firstGrandPrix,
-            round: track.round,
-            lapRecord: track.lapRecord
+        const response = await axios.get(`${F1_API_BASE_URL}/${year}`);
+        const tracks = response.data.races.map((race: any) => ({
+            id: race.circuit.circuitId,
+            name: race.circuit.circuitName,
+            circuit: race.circuit.circuitName,
+            country: race.circuit.country,
+            city: race.circuit.city,
+            length: parseFloat(race.circuit.circuitLength.replace('km', '')),
+            laps: race.laps,
+            firstGrandPrix: race.circuit.firstParticipationYear,
+            round: race.round,
+            lapRecord: {
+                time: race.circuit.lapRecord || '-',
+                driver: race.circuit.fastestLapDriverId || '-',
+                year: race.circuit.fastestLapYear || 0
+            }
         }));
-
         return { data: tracks };
     } catch (error) {
         return { data: [], error: handleApiError(error) };

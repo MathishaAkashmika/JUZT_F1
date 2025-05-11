@@ -1,20 +1,10 @@
 // Types
-export type {
-    Season,
-    Track,
-    Session,
-    SessionResult,
-    Driver,
-    Constructor,
-    ConstructorChampionship,
-    ApiError,
-    ApiResponse
-} from './types';
+export * from './types';
 
 // API Functions
-export { getSeasons as getAvailableSeasons } from './seasons';
-export { getTracksByYear as getTracks } from './tracks';
+export { getAvailableSeasons } from './seasons';
+export { getTracks } from './tracks';
 export { getRaceSessions } from './sessions';
 export { getSessionResults } from './results';
-export { getDriverStandings, getDriversByYear } from './drivers';
+export { getDriverStandings } from './drivers';
 export { getConstructorChampionship } from './constructors';
