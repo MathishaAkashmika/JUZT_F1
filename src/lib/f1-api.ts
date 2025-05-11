@@ -324,23 +324,105 @@ export const getAvailableSeasons = async (): Promise<{ data: Season[]; error?: A
 export const getSessionResults = async (year: string, round: string, session: string): Promise<{ data: SessionResult[]; error?: ApiError }> => {
     try {
         const response = await axios.get(`${F1_API_BASE_URL}/${year}/${round}/${session}`);
-        const results = response.data.races[`${session}Results`].map((result: any) => ({
-            driver: {
-                driverId: result.driver.driverId,
-                name: result.driver.name,
-                surname: result.driver.surname,
-                shortName: result.driver.shortName,
-                number: result.driver.number,
-                nationality: result.driver.nationality
-            },
-            team: {
-                teamId: result.team.teamId,
-                teamName: result.team.teamName,
-                nationality: result.team.nationality
-            },
-            time: result.time,
-            position: result[`${session}Id`]
-        }));
+        let results: SessionResult[] = [];
+
+        switch (session) {
+            case 'race':
+                results = response.data.races.results.map((result: any) => ({
+                    driver: {
+                        driverId: result.driver.driverId,
+                        name: result.driver.name,
+                        surname: result.driver.surname,
+                        shortName: result.driver.shortName,
+                        number: result.driver.number,
+                        nationality: result.driver.nationality
+                    },
+                    team: {
+                        teamId: result.team.teamId,
+                        teamName: result.team.teamName,
+                        nationality: result.team.teamNationality || result.team.nationality
+                    },
+                    time: result.time || result.fastLap || '-',
+                    position: result.position
+                }));
+                break;
+            case 'qualifying':
+                results = response.data.races.qualyResults.map((result: any) => ({
+                    driver: {
+                        driverId: result.driver.driverId,
+                        name: result.driver.name,
+                        surname: result.driver.surname,
+                        shortName: result.driver.shortName,
+                        number: result.driver.number,
+                        nationality: result.driver.nationality
+                    },
+                    team: {
+                        teamId: result.team.teamId,
+                        teamName: result.team.teamName,
+                        nationality: result.team.teamNationality || result.team.nationality
+                    },
+                    time: result.q3 || result.q2 || result.q1 || '-',
+                    position: result.gridPosition
+                }));
+                break;
+            case 'sprintQualy':
+                results = response.data.races.sprintQualyResults.map((result: any) => ({
+                    driver: {
+                        driverId: result.driver.driverId,
+                        name: result.driver.name,
+                        surname: result.driver.surname,
+                        shortName: result.driver.shortName,
+                        number: result.driver.number,
+                        nationality: result.driver.nationality
+                    },
+                    team: {
+                        teamId: result.team.teamId,
+                        teamName: result.team.teamName,
+                        nationality: result.team.teamNationality || result.team.nationality
+                    },
+                    time: result.sq3 || result.sq2 || result.sq1 || '-',
+                    position: result.gridPosition
+                }));
+                break;
+            case 'sprintRace':
+                results = response.data.races.sprintRaceResults.map((result: any) => ({
+                    driver: {
+                        driverId: result.driver.driverId,
+                        name: result.driver.name,
+                        surname: result.driver.surname,
+                        shortName: result.driver.shortName,
+                        number: result.driver.number,
+                        nationality: result.driver.nationality
+                    },
+                    team: {
+                        teamId: result.team.teamId,
+                        teamName: result.team.teamName,
+                        nationality: result.team.teamNationality || result.team.nationality
+                    },
+                    time: result.time || result.fastLap || '-',
+                    position: result.position
+                }));
+                break;
+            default: // Practice sessions (fp1, fp2, fp3)
+                results = response.data.races[`${session}Results`].map((result: any) => ({
+                    driver: {
+                        driverId: result.driver.driverId,
+                        name: result.driver.name,
+                        surname: result.driver.surname,
+                        shortName: result.driver.shortName,
+                        number: result.driver.number,
+                        nationality: result.driver.nationality
+                    },
+                    team: {
+                        teamId: result.team.teamId,
+                        teamName: result.team.teamName,
+                        nationality: result.team.teamNationality || result.team.nationality
+                    },
+                    time: result.time || '-',
+                    position: result.position
+                }));
+        }
+
         return { data: results };
     } catch (error) {
         return { data: [], error: handleApiError(error) };
