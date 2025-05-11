@@ -39,7 +39,7 @@ export const getConstructorChampionship = async (year: string): Promise<{ data: 
 
 // Helper function to get team colors
 function getTeamColor(teamId: string): string {
-    const teamColors: {[key: string]: string} = {
+    const teamColors: { [key: string]: string } = {
         mercedes: '#00D2BE',
         red_bull: '#0600EF',
         ferrari: '#DC0000',
@@ -63,6 +63,6 @@ function getTeamColor(teamId: string): string {
         marussia: '#6E0000',
         hrt: '#888888'
     };
-    
+
     return teamColors[teamId] || '#000000';
 }

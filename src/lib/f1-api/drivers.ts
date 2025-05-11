@@ -56,33 +56,56 @@ export const getDriverStandings = async (year: string): Promise<{ data: Driver[]
     try {
         const response = await axios.get(`${F1_API_BASE_URL}/${year}/drivers-championship`);
 
-        // Get OpenF1 driver data for headshots
-        const openF1Response = await getOpenF1Drivers();
-        const openF1Drivers = openF1Response.data || [];
+        // Transform the API response to match our Driver interface
+        const drivers: Driver[] = response.data.drivers_championship.map((standing: any) => ({
+            driverId: standing.driverId,
+            name: standing.driver.name,
+            surname: standing.driver.surname,
+            nationality: standing.driver.nationality,
+            birthday: standing.driver.birthday,
+            number: standing.driver.number,
+            shortName: standing.driver.shortName,
+            url: standing.driver.url,
+            team: standing.teamId,
+            position: standing.position,
+            points: standing.points,
+            wins: standing.wins || 0,
+            imageUrl: undefined
+        }));
 
-        const drivers = response.data.drivers_championship.map((item: any) => {
-            // Try to find matching driver in OpenF1 data
-            const openF1Driver = openF1Drivers.find(
-                d => d.name_acronym === item.driver.shortName
-            );
+        return { data: drivers };
+    } catch (error) {
+        return { data: [], error: handleApiError(error) };
+    }
+};
 
-            return {
-                driverId: item.driverId,
-                name: item.driver.name,
-                surname: item.driver.surname,
-                nationality: item.driver.nationality,
-                birthday: item.driver.birthday,
-                number: item.driver.number,
-                shortName: item.driver.shortName,
-                url: item.driver.url,
-                team: item.teamId,
-                teamColor: '#000000', // Default color, could be enhanced
-                position: item.position,
-                points: item.points,
-                wins: item.wins || 0,
-                imageUrl: openF1Driver?.headshot_url || `/drivers/${item.driver.shortName?.toLowerCase() || item.driverId}.png`,
-            };
-        });
+/**
+ * Fetches drivers data for a specific year using the f1api.dev endpoint
+ * @param year - The year to fetch drivers for (e.g., "2023")
+ * @returns Promise containing driver data or error
+ */
+export const getDriversByYear = async (year: string): Promise<{ data: Driver[]; error?: ApiError }> => {
+    try {
+        const response = await axios.get(`${F1_API_BASE_URL}/${year}/drivers`);
+
+        // Transform the API response to match our Driver interface
+        const drivers: Driver[] = response.data.drivers.map((driver: any) => ({
+            driverId: driver.driverId,
+            name: driver.name,
+            surname: driver.surname,
+            nationality: driver.nationality,
+            birthday: driver.birthday,
+            number: driver.number,
+            shortName: driver.shortName,
+            url: driver.url,
+            team: driver.teamId, // Map teamId to team
+            // Additional fields will be populated by other API calls if needed
+            imageUrl: undefined,
+            position: undefined,
+            points: undefined,
+            wins: undefined
+        }));
+
         return { data: drivers };
     } catch (error) {
         return { data: [], error: handleApiError(error) };

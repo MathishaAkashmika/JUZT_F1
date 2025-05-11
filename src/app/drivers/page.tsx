@@ -2,365 +2,91 @@
 
 import React, { useState, useEffect } from 'react'
 import Navbar from "@/components/ui/navbar"
-import { ChevronDown, Trophy } from 'lucide-react'
-
-// Define a Driver type locally to avoid importing from API
-interface Driver {
-    driverId: string;
-    name: string;
-    surname: string;
-    nationality: string;
-    birthday: string;
-    number: number;
-    shortName: string;
-    team?: string;
-    teamColor?: string;
-    imageUrl?: string;
-    position?: number;
-    points?: number;
-    wins?: number;
-}
-
-// Static data for drivers (current season 2023)
-const STATIC_DRIVERS: Driver[] = [
-    {
-        driverId: "max_verstappen",
-        name: "Max",
-        surname: "Verstappen",
-        nationality: "Dutch",
-        birthday: "1997-09-30",
-        number: 1,
-        shortName: "VER",
-        team: "Red Bull Racing",
-        teamColor: "#0600EF",
-        imageUrl: "/drivers/ver.png",
-        position: 1,
-        points: 443,
-        wins: 19
-    },
-    {
-        driverId: "lando_norris",
-        name: "Lando",
-        surname: "Norris",
-        nationality: "British",
-        birthday: "1999-11-13",
-        number: 4,
-        shortName: "NOR",
-        team: "McLaren",
-        teamColor: "#FF8700",
-        imageUrl: "/drivers/nor.png",
-        position: 2,
-        points: 334,
-        wins: 3
-    },
-    {
-        driverId: "charles_leclerc",
-        name: "Charles",
-        surname: "Leclerc",
-        nationality: "Monegasque",
-        birthday: "1997-10-16",
-        number: 16,
-        shortName: "LEC",
-        team: "Ferrari",
-        teamColor: "#DC0000",
-        imageUrl: "/drivers/lec.png",
-        position: 3,
-        points: 291,
-        wins: 1
-    },
-    {
-        driverId: "oscar_piastri",
-        name: "Oscar",
-        surname: "Piastri",
-        nationality: "Australian",
-        birthday: "2001-04-06",
-        number: 81,
-        shortName: "PIA",
-        team: "McLaren",
-        teamColor: "#FF8700",
-        imageUrl: "/drivers/pia.png",
-        position: 4,
-        points: 268,
-        wins: 1
-    },
-    {
-        driverId: "carlos_sainz",
-        name: "Carlos",
-        surname: "Sainz",
-        nationality: "Spanish",
-        birthday: "1994-09-01",
-        number: 55,
-        shortName: "SAI",
-        team: "Ferrari",
-        teamColor: "#DC0000",
-        imageUrl: "/drivers/sai.png",
-        position: 5,
-        points: 243,
-        wins: 1
-    },
-    {
-        driverId: "lewis_hamilton",
-        name: "Lewis",
-        surname: "Hamilton",
-        nationality: "British",
-        birthday: "1985-01-07",
-        number: 44,
-        shortName: "HAM",
-        team: "Mercedes",
-        teamColor: "#00D2BE",
-        imageUrl: "/drivers/ham.png",
-        position: 6,
-        points: 191,
-        wins: 0
-    },
-    {
-        driverId: "george_russell",
-        name: "George",
-        surname: "Russell",
-        nationality: "British",
-        birthday: "1998-02-15",
-        number: 63,
-        shortName: "RUS",
-        team: "Mercedes",
-        teamColor: "#00D2BE",
-        imageUrl: "/drivers/rus.png",
-        position: 7,
-        points: 177,
-        wins: 1
-    },
-    {
-        driverId: "sergio_perez",
-        name: "Sergio",
-        surname: "Perez",
-        nationality: "Mexican",
-        birthday: "1990-01-26",
-        number: 11,
-        shortName: "PER",
-        team: "Red Bull Racing",
-        teamColor: "#0600EF",
-        imageUrl: "/drivers/per.png",
-        position: 8,
-        points: 151,
-        wins: 0
-    },
-    {
-        driverId: "fernando_alonso",
-        name: "Fernando",
-        surname: "Alonso",
-        nationality: "Spanish",
-        birthday: "1981-07-29",
-        number: 14,
-        shortName: "ALO",
-        team: "Aston Martin",
-        teamColor: "#006F62",
-        imageUrl: "/drivers/alo.png",
-        position: 9,
-        points: 62,
-        wins: 0
-    },
-    {
-        driverId: "nico_hulkenberg",
-        name: "Nico",
-        surname: "Hülkenberg",
-        nationality: "German",
-        birthday: "1987-08-19",
-        number: 27,
-        shortName: "HUL",
-        team: "Haas F1 Team",
-        teamColor: "#FFFFFF",
-        imageUrl: "/drivers/hul.png",
-        position: 10,
-        points: 22,
-        wins: 0
-    },
-    {
-        driverId: "lance_stroll",
-        name: "Lance",
-        surname: "Stroll",
-        nationality: "Canadian",
-        birthday: "1998-10-29",
-        number: 18,
-        shortName: "STR",
-        team: "Aston Martin",
-        teamColor: "#006F62",
-        imageUrl: "/drivers/str.png",
-        position: 11,
-        points: 21,
-        wins: 0
-    },
-    {
-        driverId: "yuki_tsunoda",
-        name: "Yuki",
-        surname: "Tsunoda",
-        nationality: "Japanese",
-        birthday: "2000-05-11",
-        number: 22,
-        shortName: "TSU",
-        team: "RB",
-        teamColor: "#1E3D61",
-        imageUrl: "/drivers/tsu.png",
-        position: 12,
-        points: 20,
-        wins: 0
-    },
-    {
-        driverId: "alex_albon",
-        name: "Alexander",
-        surname: "Albon",
-        nationality: "Thai",
-        birthday: "1996-03-23",
-        number: 23,
-        shortName: "ALB",
-        team: "Williams",
-        teamColor: "#005AFF",
-        imageUrl: "/drivers/alb.png",
-        position: 13,
-        points: 12,
-        wins: 0
-    },
-    {
-        driverId: "daniel_ricciardo",
-        name: "Daniel",
-        surname: "Ricciardo",
-        nationality: "Australian",
-        birthday: "1989-07-01",
-        number: 3,
-        shortName: "RIC",
-        team: "RB",
-        teamColor: "#1E3D61",
-        imageUrl: "/drivers/ric.png",
-        position: 14,
-        points: 12,
-        wins: 0
-    },
-    {
-        driverId: "oliver_bearman",
-        name: "Oliver",
-        surname: "Bearman",
-        nationality: "British",
-        birthday: "2005-05-08",
-        number: 87,
-        shortName: "BEA",
-        team: "Haas F1 Team",
-        teamColor: "#FFFFFF",
-        imageUrl: "/drivers/bea.png",
-        position: 15,
-        points: 7,
-        wins: 0
-    },
-    {
-        driverId: "kevin_magnussen",
-        name: "Kevin",
-        surname: "Magnussen",
-        nationality: "Danish",
-        birthday: "1992-10-05",
-        number: 20,
-        shortName: "MAG",
-        team: "Haas F1 Team",
-        teamColor: "#FFFFFF",
-        imageUrl: "/drivers/mag.png",
-        position: 16,
-        points: 5,
-        wins: 0
-    },
-    {
-        driverId: "esteban_ocon",
-        name: "Esteban",
-        surname: "Ocon",
-        nationality: "French",
-        birthday: "1996-09-17",
-        number: 31,
-        shortName: "OCO",
-        team: "Alpine",
-        teamColor: "#0090FF",
-        imageUrl: "/drivers/oco.png",
-        position: 17,
-        points: 5,
-        wins: 0
-    },
-    {
-        driverId: "pierre_gasly",
-        name: "Pierre",
-        surname: "Gasly",
-        nationality: "French",
-        birthday: "1996-02-07",
-        number: 10,
-        shortName: "GAS",
-        team: "Alpine",
-        teamColor: "#0090FF",
-        imageUrl: "/drivers/gas.png",
-        position: 18,
-        points: 5,
-        wins: 0
-    },
-    {
-        driverId: "valtteri_bottas",
-        name: "Valtteri",
-        surname: "Bottas",
-        nationality: "Finnish",
-        birthday: "1989-08-28",
-        number: 77,
-        shortName: "BOT",
-        team: "Kick Sauber",
-        teamColor: "#900000",
-        imageUrl: "/drivers/bot.png",
-        position: 19,
-        points: 0,
-        wins: 0
-    },
-    {
-        driverId: "zhou_guanyu",
-        name: "Zhou",
-        surname: "Guanyu",
-        nationality: "Chinese",
-        birthday: "1999-05-30",
-        number: 24,
-        shortName: "ZHO",
-        team: "Kick Sauber",
-        teamColor: "#900000",
-        imageUrl: "/drivers/zho.png",
-        position: 20,
-        points: 0,
-        wins: 0
-    }
-];
-
-// Static data for drivers from past seasons
-const STATIC_DRIVERS_2023 = [...STATIC_DRIVERS].map(driver => ({ ...driver }));
-const STATIC_DRIVERS_2022 = [...STATIC_DRIVERS].map(driver => ({ ...driver }));
-
-// Mapping of season to static driver data
-const SEASON_DATA: Record<string, Driver[]> = {
-    "current": STATIC_DRIVERS,
-    "2023": STATIC_DRIVERS_2023,
-    "2022": STATIC_DRIVERS_2022,
-};
+import { ChevronDown, Trophy, ExternalLink } from 'lucide-react'
+import { Driver, Season, ApiError } from '@/lib/f1-api/types'
+import { getDriversByYear } from '@/lib/f1-api/drivers'
+import { getAvailableSeasons } from '@/lib/f1-api'
 
 export default function DriversPage() {
-    const [currentDrivers, setCurrentDrivers] = useState<Driver[]>([])
-    const [selectedSeason, setSelectedSeason] = useState("current")
-    const [seasons] = useState<string[]>([
-        "current", "2023", "2022", "2021", "2020", "2019", "2018", "2017"
-    ])
-    const [selectedDriverId, setSelectedDriverId] = useState<string | null>(null)
-    const [selectedDriver, setSelectedDriver] = useState<Driver | null>(null)
-    const [isLoadingDrivers, setIsLoadingDrivers] = useState(true)
+    const [currentDrivers, setCurrentDrivers] = useState<Driver[]>([]);
+    const [selectedSeason, setSelectedSeason] = useState(new Date().getFullYear().toString());
+    const [availableSeasons, setAvailableSeasons] = useState<Season[]>([]);
+    const [formattedSeasons, setFormattedSeasons] = useState<string[]>([]);
+    const [selectedDriverId, setSelectedDriverId] = useState<string | null>(null);
+    const [selectedDriver, setSelectedDriver] = useState<Driver | null>(null);
+    const [isLoadingDrivers, setIsLoadingDrivers] = useState(true);
+    const [isLoadingSeasons, setIsLoadingSeasons] = useState(false);
+    const [apiError, setApiError] = useState<string | null>(null);
 
     useEffect(() => {
-        // Use static data instead of API call
-        const fetchDrivers = () => {
+        // Fetch drivers from API only
+        const fetchDrivers = async () => {
             setIsLoadingDrivers(true);
+            setApiError(null);
 
-            // Simulate network delay
-            setTimeout(() => {
-                const drivers = SEASON_DATA[selectedSeason] || STATIC_DRIVERS;
-                setCurrentDrivers(drivers);
+            try {
+                // Use the selected season
+                const year = selectedSeason;
+
+                // Call our API function
+                const result = await getDriversByYear(year);
+
+                if (result.error) {
+                    console.error("Error fetching drivers:", result.error);
+                    setCurrentDrivers([]);
+                    setApiError(`Couldn't load driver data for ${year}. ${result.error.message || ''}`);
+                } else if (result.data && result.data.length > 0) {
+                    setCurrentDrivers(result.data);
+                } else {
+                    setCurrentDrivers([]);
+                    setApiError(`No driver data available for ${year}.`);
+                }
+            } catch (error) {
+                console.error("Error in fetchDrivers:", error);
+                setCurrentDrivers([]);
+                setApiError(`Error loading driver data. Please try again later.`);
+            } finally {
                 setIsLoadingDrivers(false);
-            }, 500);
+            }
         };
 
         fetchDrivers();
-    }, [selectedSeason])
+    }, [selectedSeason]);
+
+    useEffect(() => {
+        // Fetch available seasons from the API
+        setIsLoadingSeasons(true);
+
+        getAvailableSeasons().then((res: { data: Season[]; error?: ApiError }) => {
+            setIsLoadingSeasons(false);
+
+            if (res.error) {
+                console.error("Error fetching seasons:", res.error);
+                return;
+            }
+
+            if (res.data && res.data.length > 0) {
+                // Sort seasons in descending order (newest first)
+                const sortedSeasons = [...res.data].sort((a, b) => b.year - a.year);
+                setAvailableSeasons(sortedSeasons);
+
+                // Format seasons for display in dropdown
+                const availableYears = sortedSeasons.map(s => s.year.toString());
+
+                // Make sure there are no duplicates
+                const uniqueYears = Array.from(new Set(availableYears));
+                setFormattedSeasons(uniqueYears);
+
+                // Set current year or most recent year as default
+                if (uniqueYears.length > 0) {
+                    setSelectedSeason(uniqueYears[0]);
+                }
+            }
+        }).catch(error => {
+            console.error("Error fetching seasons:", error);
+            setIsLoadingSeasons(false);
+        });
+    }, []);
 
     useEffect(() => {
         if (selectedDriverId && currentDrivers.length > 0) {
@@ -387,7 +113,27 @@ export default function DriversPage() {
             'Danish': '🇩🇰',
             'French': '🇫🇷',
             'Finnish': '🇫🇮',
-            'Chinese': '🇨🇳'
+            'Chinese': '🇨🇳',
+            'Italian': '🇮🇹',
+            'Brazilian': '🇧🇷',
+            'New Zealander': '🇳🇿',
+            'Netherlands': '🇳🇱',
+            'Great Britain': '🇬🇧',
+            'Monaco': '🇲🇨',
+            'Australia': '🇦🇺',
+            'Spain': '🇪🇸',
+            'Mexico': '🇲🇽',
+            'Germany': '🇩🇪',
+            'Canada': '🇨🇦',
+            'Japan': '🇯🇵',
+            'Thailand': '🇹🇭',
+            'Denmark': '🇩🇰',
+            'France': '🇫🇷',
+            'Finland': '🇫🇮',
+            'China': '🇨🇳',
+            'Italy': '🇮🇹',
+            'Brazil': '🇧🇷',
+            'New Zealand': '🇳🇿'
         };
 
         return flags[nationality] || '';
@@ -395,27 +141,40 @@ export default function DriversPage() {
 
     return (
         <main className="min-h-screen bg-[#121212] text-white">
-            <Navbar />
-
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <Navbar />            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
-                    <h1 className="text-3xl md:text-4xl font-bold mb-4 md:mb-0">F1 Drivers</h1>
-
-                    <div className="relative w-full md:w-48">
-                        <select
-                            value={selectedSeason}
-                            onChange={(e) => setSelectedSeason(e.target.value)}
-                            className="appearance-none bg-[#1E1E1E] border border-gray-700 rounded-md py-2 px-4 pr-8 text-white w-full focus:outline-none focus:ring-1 focus:ring-purple-500"
-                        >
-                            {seasons.map((season) => (
-                                <option key={season} value={season}>
-                                    {season === "current" ? "Current Season" : `${season} Season`}
-                                </option>
-                            ))}
-                        </select>
-                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                    <h1 className="text-3xl md:text-4xl font-bold mb-4 md:mb-0">F1 Drivers</h1>                    <div className="relative w-full md:w-48">
+                        {isLoadingSeasons ? (
+                            <div className="bg-[#1E1E1E] border border-gray-700 rounded-md py-2 px-4 text-white flex items-center justify-between">
+                                <span className="text-gray-400">Loading seasons...</span>
+                                <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-purple-500"></div>
+                            </div>
+                        ) : (
+                            <div className="relative">
+                                <select
+                                    value={selectedSeason}
+                                    onChange={(e) => setSelectedSeason(e.target.value)}
+                                    className="appearance-none bg-[#1E1E1E] border border-gray-700 rounded-md py-2 px-4 pr-8 text-white w-full focus:outline-none focus:ring-1 focus:ring-purple-500"
+                                >                                    {formattedSeasons.map((season: string) => (
+                                    <option key={season} value={season}>
+                                        {`${season} Season`}
+                                    </option>
+                                ))}
+                                </select>
+                                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                            </div>
+                        )}
                     </div>
                 </div>
+
+                {apiError && (
+                    <div className="bg-yellow-900/30 border border-yellow-700/50 text-yellow-200 px-4 py-3 rounded mb-6 flex items-center">
+                        <svg className="h-5 w-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                        </svg>
+                        {apiError}
+                    </div>
+                )}
 
                 {isLoadingDrivers ? (
                     <div className="flex justify-center items-center h-64">
@@ -492,16 +251,30 @@ export default function DriversPage() {
                                                 <span className="text-gray-400">Nationality</span>
                                                 <span className="font-medium">{getCountryFlag(selectedDriver.nationality)} {selectedDriver.nationality}</span>
                                             </div>
+                                            <div className="flex items-center justify-between border-b border-gray-800 pb-2">
+                                                <span className="text-gray-400">Team</span>
+                                                <span className="font-medium">{selectedDriver.team || "N/A"}</span>
+                                            </div>
+                                            {selectedDriver.url && (
+                                                <div className="flex items-center justify-between border-b border-gray-800 pb-2">
+                                                    <span className="text-gray-400">Wikipedia</span>
+                                                    <a
+                                                        href={selectedDriver.url}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="font-medium text-purple-400 hover:text-purple-300 flex items-center gap-1"
+                                                    >
+                                                        View Profile
+                                                        <ExternalLink className="h-4 w-4" />
+                                                    </a>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
 
                                     <div>
                                         <h3 className="text-xl font-semibold mb-4">Season Statistics</h3>
                                         <div className="space-y-3">
-                                            <div className="flex items-center justify-between border-b border-gray-800 pb-2">
-                                                <span className="text-gray-400">Team</span>
-                                                <span className="font-medium">{selectedDriver.team || "N/A"}</span>
-                                            </div>
                                             <div className="flex items-center justify-between border-b border-gray-800 pb-2">
                                                 <span className="text-gray-400">Current Position</span>
                                                 <span className="font-medium">{selectedDriver.position ? `P${selectedDriver.position}` : "N/A"}</span>
