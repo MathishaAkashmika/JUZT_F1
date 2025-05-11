@@ -13,10 +13,13 @@ import {
     getAvailableSeasons,
     getTracks,
     getRaceSessions,
+    getSessionResults,
     Season,
     Track,
-    Session
+    Session,
+    SessionResult
 } from '@/lib/f1-api'
+import axios from 'axios'
 
 export default function RaceDashboard() {
     const [selectedSeason, setSelectedSeason] = useState("")
@@ -29,15 +32,19 @@ export default function RaceDashboard() {
     const [isLoadingTracks, setIsLoadingTracks] = useState(false)
     const [isLoadingSessions, setIsLoadingSessions] = useState(false)
     const [error, setError] = useState<string | null>(null)
+    const [topDrivers, setTopDrivers] = useState<any[]>([])
+    const [sessionResults, setSessionResults] = useState<SessionResult[]>([])
+    const [isLoadingResults, setIsLoadingResults] = useState(false)
 
-    // Generate years from 1950 to current year
+    // Fetch seasons from the API instead of generating years locally
     useEffect(() => {
-        const currentYear = new Date().getFullYear()
-        const years = Array.from(
-            { length: currentYear - 1949 },
-            (_, i) => ({ year: currentYear - i, totalRaces: 0 })
-        )
-        setSeasons(years)
+        getAvailableSeasons().then(res => {
+            if (res.error) {
+                setError(res.error.message)
+                return
+            }
+            setSeasons(res.data)
+        })
     }, [])
 
     // Fetch tracks when season changes
@@ -82,6 +89,27 @@ export default function RaceDashboard() {
         })
     }, [selectedTrack, selectedSeason, tracks])
 
+    // Fetch session results when session changes
+    useEffect(() => {
+        if (!selectedSeason || !selectedTrack || !selectedSession) return
+        setSessionResults([])
+        setError(null)
+        setIsLoadingResults(true)
+
+        // Find the track id and round number
+        const track = tracks.find(t => t.circuit.toLowerCase() === selectedTrack)
+        if (!track) return
+
+        getSessionResults(selectedSeason, track.round.toString(), selectedSession).then(res => {
+            setIsLoadingResults(false)
+            if (res.error) {
+                setError(res.error.message)
+                return
+            }
+            setSessionResults(res.data)
+        })
+    }, [selectedSession, selectedTrack, selectedSeason, tracks])
+
     // Format date and time for display
     const formatSessionDateTime = (session: Session) => {
         const date = new Date(`${session.date}T${session.time}`);
@@ -95,30 +123,12 @@ export default function RaceDashboard() {
         });
     }
 
-    // Example driver data for highlight cards
-    const driverHighlights = [
-        {
-            name: "Albon",
-            team: "Williams",
-            carImg: "/cars/williams.png",
-            driverImg: "/drivers/albon.png",
-            teamLogo: "/team-logos/williams.png"
-        },
-        {
-            name: "Gasly",
-            team: "Alpine",
-            carImg: "/cars/alpine.png",
-            driverImg: "/drivers/gasly.png",
-            teamLogo: "/team-logos/alpine.png"
-        },
-        {
-            name: "Hadjar",
-            team: "Visa RB",
-            carImg: "/cars/visa-rb.png",
-            driverImg: "/drivers/hadjar.png",
-            teamLogo: "/team-logos/visa-rb.png"
+    const fetchTopDrivers = async (year: string, round: string, session: string) => {
+        const { data, error } = await getSessionResults(year, round, session);
+        if (data && data.length > 0) {
+            setTopDrivers(data.slice(0, 3));
         }
-    ]
+    };
 
     return (
         <div className="min-h-screen bg-black text-white font-mono tracking-wide">
@@ -185,33 +195,40 @@ export default function RaceDashboard() {
 
                 {/* Driver Highlight Cards */}
                 <div className="grid grid-cols-3 gap-4 w-full mb-2">
-                    {driverHighlights.map((driver, idx) => (
-                        <div
-                            key={idx}
-                            className={`relative rounded-xl border bg-neutral-900 flex items-end h-24 overflow-hidden cursor-pointer transition-all duration-150 ${selectedDriver === idx ? 'border-2 border-blue-500' : 'border border-neutral-700'}`}
-                            onClick={() => setSelectedDriver(idx)}
-                        >
-                            {/* Car image as background */}
-                            <img src={driver.carImg} alt="car" className="absolute left-0 top-0 h-full w-full object-cover opacity-90" style={{ zIndex: 1 }} />
-                            {/* Overlay for darkening */}
-                            <div className="absolute left-0 top-0 h-full w-full bg-black/40" style={{ zIndex: 2 }} />
-                            {/* Content */}
-                            <div className="relative flex flex-row justify-between items-end h-full w-full z-10 px-3 pb-2">
-                                <div className="flex flex-col justify-between h-full py-2">
-                                    <div>
-                                        <span className="text-xs font-bold leading-none block">{driver.name}</span>
-                                        <span className="text-[10px] text-gray-300 leading-none block">{driver.team}</span>
+                    {isLoadingResults ? (
+                        <div className="col-span-3 text-center text-gray-400 py-8">Loading results...</div>
+                    ) : sessionResults.length > 0 ? (
+                        sessionResults.slice(0, 3).map((result, idx) => (
+                            <div
+                                key={result.driver.driverId}
+                                className={`relative rounded-xl border bg-neutral-900 flex items-end h-24 overflow-hidden cursor-pointer transition-all duration-150 ${selectedDriver === idx ? 'border-2 border-blue-500' : 'border border-neutral-700'}`}
+                                onClick={() => setSelectedDriver(idx)}
+                            >
+                                {/* Car image as background */}
+                                <img src={`/cars/${result.team.teamId}.png`} alt="car" className="absolute left-0 top-0 h-full w-full object-cover opacity-90" style={{ zIndex: 1 }} />
+                                {/* Overlay for darkening */}
+                                <div className="absolute left-0 top-0 h-full w-full bg-black/40" style={{ zIndex: 2 }} />
+                                {/* Content */}
+                                <div className="relative flex flex-row justify-between items-end h-full w-full z-10 px-3 pb-2">
+                                    <div className="flex flex-col justify-between h-full py-2">
+                                        <div>
+                                            <span className="text-xs font-bold leading-none block">{result.driver.surname}</span>
+                                            <span className="text-[10px] text-gray-300 leading-none block">{result.team.teamName}</span>
+                                            <span className="text-[10px] text-gray-400 leading-none block mt-1">{result.time}</span>
+                                        </div>
+                                        <img src={`/team-logos/${result.team.teamId}.png`} alt="team logo" className="h-6 w-6 object-contain mt-2" />
                                     </div>
-                                    <img src={driver.teamLogo} alt="team logo" className="h-6 w-6 object-contain mt-2" />
-                                </div>
-                                <div className="flex items-end h-full">
-                                    <div className="h-16 w-16 rounded-lg overflow-hidden border-2 border-white bg-black/60 flex items-end justify-end">
-                                        <img src={driver.driverImg} alt="driver" className="h-full w-full object-contain" />
+                                    <div className="flex items-end h-full">
+                                        <div className="h-16 w-16 rounded-lg overflow-hidden border-2 border-white bg-black/60 flex items-end justify-end">
+                                            <img src={`/drivers/${result.driver.shortName.toLowerCase()}.png`} alt="driver" className="h-full w-full object-contain" />
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    ))}
+                        ))
+                    ) : (
+                        <div className="col-span-3 text-center text-gray-400 py-8">No session results available. Please select a year, track, and session.</div>
+                    )}
                 </div>
 
                 {/* Top Panels + Standings Stacked */}
@@ -247,37 +264,16 @@ export default function RaceDashboard() {
                             <span>Time</span>
                         </div>
                         <div className="flex flex-col gap-2">
-                            {[
-                                { pos: 1, driver: 'VER', time: '1:27.294' },
-                                { pos: 2, driver: 'PER', time: 'Time' },
-                                { pos: 3, driver: 'RUS', time: 'Time' },
-                                { pos: 4, driver: 'LEC', time: 'Time' },
-                                { pos: 5, driver: 'ANT', time: 'Time' },
-                                { pos: 6, driver: 'SAI', time: 'Time' },
-                                { pos: 7, driver: 'HAM', time: 'Time' },
-                                { pos: 8, driver: 'TSU', time: 'Time' },
-                                { pos: 9, driver: 'GAS', time: 'Time' },
-                                { pos: 10, driver: 'NOR', time: 'Time' },
-                                { pos: 11, driver: 'ALB', time: 'Time' },
-                                { pos: 12, driver: 'LAW', time: 'Time' },
-                                { pos: 13, driver: 'ALO', time: 'Time' },
-                                { pos: 14, driver: 'HAD', time: 'Time' },
-                                { pos: 15, driver: 'BEA', time: 'Time' },
-                                { pos: 16, driver: 'STR', time: 'Time' },
-                                { pos: 17, driver: 'OCO', time: 'Time' },
-                                { pos: 18, driver: 'HUL', time: 'Time' },
-                                { pos: 19, driver: 'OCON', time: 'Time' },
-                                { pos: 20, driver: 'BOR', time: 'Time' },
-                            ].map((row, idx) => (
-                                <div
-                                    key={idx}
-                                    className="flex justify-between items-center px-4 py-2 bg-neutral-700 text-white font-bold rounded-full"
-                                >
-                                    <span>{row.pos}</span>
-                                    <span>{row.driver}</span>
-                                    <span>{row.time}</span>
-                                </div>
-                            ))}
+                            <div className="driver-tree">
+                                {topDrivers.map((result, idx) => (
+                                    <div key={result.driverId} className="driver-box">
+                                        <img src={result.driver?.imageUrl || '/default-driver.png'} alt={result.driver?.name} />
+                                        <div>{result.driver?.name} {result.driver?.surname}</div>
+                                        <div>{result.team?.teamName}</div>
+                                        <div>{result.time}</div>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -292,9 +288,4 @@ export default function RaceDashboard() {
             </div>
         </div>
     )
-}
-
-export async function getSessionResults(season, round) {
-    const res = await fetch(`https://f1api.dev/api/results?season=${season}&round=${round}`);
-    return res.json();
 }

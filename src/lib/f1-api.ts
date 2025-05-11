@@ -53,6 +53,7 @@ export interface Track {
     length: number;
     laps: number;
     firstGrandPrix: number;
+    round: number;
     lapRecord: {
         time: string;
         driver: string;
@@ -74,6 +75,24 @@ export interface Season {
         surname: string;
         team: string;
     };
+}
+
+export interface SessionResult {
+    driver: {
+        driverId: string;
+        name: string;
+        surname: string;
+        shortName: string;
+        number: number;
+        nationality: string;
+    };
+    team: {
+        teamId: string;
+        teamName: string;
+        nationality: string;
+    };
+    time: string;
+    position: number;
 }
 
 const handleApiError = (error: any): ApiError => {
@@ -192,6 +211,7 @@ export const getTracks = async (year: string): Promise<{ data: Track[]; error?: 
             length: parseFloat(race.circuit.circuitLength.replace('km', '')),
             laps: race.laps,
             firstGrandPrix: race.circuit.firstParticipationYear,
+            round: race.round,
             lapRecord: {
                 time: race.circuit.lapRecord || '-',
                 driver: race.circuit.fastestLapDriverId || '-',
@@ -290,17 +310,38 @@ export const getRaceSessions = async (year: string, raceId: string): Promise<{ d
 export const getAvailableSeasons = async (): Promise<{ data: Season[]; error?: ApiError }> => {
     try {
         const response = await axios.get(`${F1_API_BASE_URL}/seasons`);
-        const seasons = response.data.data.map((season: any) => ({
-            year: season.year,
-            totalRaces: season.totalRaces,
-            champion: season.champion ? {
-                driverId: season.champion.driverId,
-                name: season.champion.name,
-                surname: season.champion.surname,
-                team: season.champion.team
-            } : undefined
+        const seasons = response.data.championships.map((championship: any) => ({
+            year: championship.year,
+            totalRaces: 0, // This information is not available in the new API
+            champion: undefined // This information is not available in the new API
         }));
         return { data: seasons };
+    } catch (error) {
+        return { data: [], error: handleApiError(error) };
+    }
+};
+
+export const getSessionResults = async (year: string, round: string, session: string): Promise<{ data: SessionResult[]; error?: ApiError }> => {
+    try {
+        const response = await axios.get(`${F1_API_BASE_URL}/${year}/${round}/${session}`);
+        const results = response.data.races[`${session}Results`].map((result: any) => ({
+            driver: {
+                driverId: result.driver.driverId,
+                name: result.driver.name,
+                surname: result.driver.surname,
+                shortName: result.driver.shortName,
+                number: result.driver.number,
+                nationality: result.driver.nationality
+            },
+            team: {
+                teamId: result.team.teamId,
+                teamName: result.team.teamName,
+                nationality: result.team.nationality
+            },
+            time: result.time,
+            position: result[`${session}Id`]
+        }));
+        return { data: results };
     } catch (error) {
         return { data: [], error: handleApiError(error) };
     }
