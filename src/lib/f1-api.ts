@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const F1_API_BASE_URL = 'https://f1api.dev/api';
+const F1_API_BASE_URL = process.env.NEXT_PUBLIC_F1_API_BASE_URL;
+
 export interface Driver {
     driverId: string;
     name: string;
@@ -15,6 +16,22 @@ export interface Driver {
     imageUrl?: string;
     position?: number;
     points?: number;
+    wins?: number;
+}
+
+export interface OpenF1Driver {
+    driver_number: number;
+    broadcast_name: string;
+    full_name: string;
+    name_acronym: string;
+    team_name: string;
+    team_colour: string;
+    first_name: string;
+    last_name: string;
+    headshot_url: string;
+    country_code: string;
+    session_key: number;
+    meeting_key: number;
 }
 
 export interface Constructor {
@@ -85,6 +102,7 @@ export interface SessionResult {
         shortName: string;
         number: number;
         nationality: string;
+        imageUrl?: string;
     };
     team: {
         teamId: string;
@@ -93,6 +111,8 @@ export interface SessionResult {
     };
     time: string;
     position: number;
+    points?: number;
+    gridPosition?: number;
 }
 
 const handleApiError = (error: any): ApiError => {
@@ -108,14 +128,29 @@ const handleApiError = (error: any): ApiError => {
     };
 };
 
+export const getOpenF1Drivers = async (): Promise<{ data: OpenF1Driver[]; error?: ApiError }> => {
+    try {
+        const response = await axios.get('https://api.openf1.org/v1/drivers');
+        return { data: response.data };
+    } catch (error) {
+        return { data: [], error: handleApiError(error) };
+    }
+};
+
 export const getDriverDetails = async (driverId: string): Promise<{ data: Driver; error?: ApiError }> => {
     try {
         const response = await axios.get(`${F1_API_BASE_URL}/drivers/${driverId}`);
         const driverData = response.data.drivers[0];
+
+        // Get OpenF1 driver data for headshot
+        const openF1Response = await getOpenF1Drivers();
+        const openF1Drivers = openF1Response.data || [];
+        const openF1Driver = openF1Drivers.find(d => d.name_acronym === driverData.shortName);
+
         return {
             data: {
                 ...driverData,
-                imageUrl: `/drivers/${driverData.shortName?.toLowerCase() || driverData.driverId}.png`,
+                imageUrl: openF1Driver?.headshot_url || `/drivers/${driverData.shortName?.toLowerCase() || driverData.driverId}.png`,
             }
         };
     } catch (error) {
@@ -126,15 +161,23 @@ export const getDriverDetails = async (driverId: string): Promise<{ data: Driver
 export const getCurrentDrivers = async (): Promise<{ data: Driver[]; error?: ApiError }> => {
     try {
         const response = await axios.get(`${F1_API_BASE_URL}/current/drivers`);
+
+        // Get OpenF1 driver data for headshots
+        const openF1Response = await getOpenF1Drivers();
+        const openF1Drivers = openF1Response.data || [];
+
         const drivers = await Promise.all(
             response.data.drivers.map(async (driver: any) => {
                 const details = await getDriverDetails(driver.driverId);
+                const openF1Driver = openF1Drivers.find(d => d.name_acronym === details.data.shortName);
+
                 return {
                     ...details.data,
                     team: driver.teamId,
                     teamColor: driver.teamColor || '#000000',
                     position: driver.position,
                     points: driver.points,
+                    imageUrl: openF1Driver?.headshot_url || `/drivers/${details.data.shortName?.toLowerCase() || details.data.driverId}.png`,
                 };
             })
         );
@@ -147,22 +190,34 @@ export const getCurrentDrivers = async (): Promise<{ data: Driver[]; error?: Api
 export const getDriverStandings = async (year: string): Promise<{ data: Driver[]; error?: ApiError }> => {
     try {
         const response = await axios.get(`${F1_API_BASE_URL}/${year}/drivers-championship`);
-        const drivers = response.data.drivers_championship.map((item: any) => ({
-            driverId: item.driverId,
-            name: item.driver.name,
-            surname: item.driver.surname,
-            nationality: item.driver.nationality,
-            birthday: item.driver.birthday,
-            number: item.driver.number,
-            shortName: item.driver.shortName,
-            url: item.driver.url,
-            team: item.teamId,
-            teamColor: '#000000', // Default color, could be enhanced
-            position: item.position,
-            points: item.points,
-            wins: item.wins || 0,
-            imageUrl: `/drivers/${item.driver.shortName?.toLowerCase() || item.driverId}.png`,
-        }));
+
+        // Get OpenF1 driver data for headshots
+        const openF1Response = await getOpenF1Drivers();
+        const openF1Drivers = openF1Response.data || [];
+
+        const drivers = response.data.drivers_championship.map((item: any) => {
+            // Try to find matching driver in OpenF1 data
+            const openF1Driver = openF1Drivers.find(
+                d => d.name_acronym === item.driver.shortName
+            );
+
+            return {
+                driverId: item.driverId,
+                name: item.driver.name,
+                surname: item.driver.surname,
+                nationality: item.driver.nationality,
+                birthday: item.driver.birthday,
+                number: item.driver.number,
+                shortName: item.driver.shortName,
+                url: item.driver.url,
+                team: item.teamId,
+                teamColor: '#000000', // Default color, could be enhanced
+                position: item.position,
+                points: item.points,
+                wins: item.wins || 0,
+                imageUrl: openF1Driver?.headshot_url || `/drivers/${item.driver.shortName?.toLowerCase() || item.driverId}.png`,
+            };
+        });
         return { data: drivers };
     } catch (error) {
         return { data: [], error: handleApiError(error) };
@@ -333,46 +388,66 @@ export const getSessionResults = async (year: string, round: string, session: st
                 session === 'qualifying' ? 'qualy' :
                     session;
         const response = await axios.get(`${F1_API_BASE_URL}/${year}/${round}/${sessionUrl}`);
+
+        // Get OpenF1 driver data for headshots
+        const openF1Response = await getOpenF1Drivers();
+        const openF1Drivers = openF1Response.data || [];
+
         let results: SessionResult[] = [];
 
         switch (session) {
             case 'race':
-                results = response.data.races.results.map((result: any) => ({
-                    driver: {
-                        driverId: result.driver.driverId,
-                        name: result.driver.name,
-                        surname: result.driver.surname,
-                        shortName: result.driver.shortName,
-                        number: result.driver.number,
-                        nationality: result.driver.nationality
-                    },
-                    team: {
-                        teamId: result.team.teamId,
-                        teamName: result.team.teamName,
-                        nationality: result.team.teamNationality || result.team.nationality
-                    },
-                    time: result.time || result.fastLap || '-',
-                    position: result.position
-                }));
+                results = response.data.races.results.map((result: any) => {
+                    // Find matching driver in OpenF1 data
+                    const openF1Driver = openF1Drivers.find(
+                        d => d.name_acronym === result.driver.shortName
+                    );
+
+                    return {
+                        driver: {
+                            driverId: result.driver.driverId,
+                            name: result.driver.name,
+                            surname: result.driver.surname,
+                            shortName: result.driver.shortName,
+                            number: result.driver.number,
+                            nationality: result.driver.nationality,
+                            imageUrl: openF1Driver?.headshot_url || null
+                        },
+                        team: {
+                            teamId: result.team.teamId,
+                            teamName: result.team.teamName,
+                            nationality: result.team.teamNationality || result.team.nationality
+                        },
+                        time: result.time || result.fastLap || '-',
+                        position: result.position
+                    };
+                });
                 break;
             case 'qualifying':
-                results = response.data.races.qualyResults.map((result: any) => ({
-                    driver: {
-                        driverId: result.driver.driverId,
-                        name: result.driver.name,
-                        surname: result.driver.surname,
-                        shortName: result.driver.shortName,
-                        number: result.driver.number,
-                        nationality: result.driver.nationality
-                    },
-                    team: {
-                        teamId: result.team.teamId,
-                        teamName: result.team.teamName,
-                        nationality: result.team.teamNationality || result.team.nationality
-                    },
-                    time: result.q3 || result.q2 || result.q1 || '-',
-                    position: result.gridPosition
-                }));
+                results = response.data.races.qualyResults.map((result: any) => {
+                    const openF1Driver = openF1Drivers.find(
+                        d => d.name_acronym === result.driver.shortName
+                    );
+
+                    return {
+                        driver: {
+                            driverId: result.driver.driverId,
+                            name: result.driver.name,
+                            surname: result.driver.surname,
+                            shortName: result.driver.shortName,
+                            number: result.driver.number,
+                            nationality: result.driver.nationality,
+                            imageUrl: openF1Driver?.headshot_url || null
+                        },
+                        team: {
+                            teamId: result.team.teamId,
+                            teamName: result.team.teamName,
+                            nationality: result.team.teamNationality || result.team.nationality
+                        },
+                        time: result.q3 || result.q2 || result.q1 || '-',
+                        position: result.gridPosition
+                    };
+                });
                 break;
             case 'sprintQualy':
                 results = response.data.races.sprintQualyResults.map((result: any) => {
@@ -382,6 +457,10 @@ export const getSessionResults = async (year: string, round: string, session: st
                     const sq2 = cleanTime(result.sq2);
                     const sq1 = cleanTime(result.sq1);
 
+                    const openF1Driver = openF1Drivers.find(
+                        d => d.name_acronym === result.driver.shortName
+                    );
+
                     return {
                         driver: {
                             driverId: result.driver.driverId,
@@ -389,7 +468,8 @@ export const getSessionResults = async (year: string, round: string, session: st
                             surname: result.driver.surname,
                             shortName: result.driver.shortName,
                             number: result.driver.number,
-                            nationality: result.driver.nationality
+                            nationality: result.driver.nationality,
+                            imageUrl: openF1Driver?.headshot_url || null
                         },
                         team: {
                             teamId: result.team.teamId,
@@ -402,44 +482,58 @@ export const getSessionResults = async (year: string, round: string, session: st
                 });
                 break;
             case 'sprintRace':
-                results = response.data.races.sprintRaceResults.map((result: any) => ({
-                    driver: {
-                        driverId: result.driver.driverId,
-                        name: result.driver.name,
-                        surname: result.driver.surname,
-                        shortName: result.driver.shortName,
-                        number: result.driver.number,
-                        nationality: result.driver.nationality
-                    },
-                    team: {
-                        teamId: result.team.teamId,
-                        teamName: result.team.teamName,
-                        nationality: result.team.teamNationality || result.team.nationality
-                    },
-                    time: result.time || result.fastLap || '-',
-                    position: result.position,
-                    points: result.points || 0,
-                    gridPosition: result.gridPosition
-                }));
+                results = response.data.races.sprintRaceResults.map((result: any) => {
+                    const openF1Driver = openF1Drivers.find(
+                        d => d.name_acronym === result.driver.shortName
+                    );
+
+                    return {
+                        driver: {
+                            driverId: result.driver.driverId,
+                            name: result.driver.name,
+                            surname: result.driver.surname,
+                            shortName: result.driver.shortName,
+                            number: result.driver.number,
+                            nationality: result.driver.nationality,
+                            imageUrl: openF1Driver?.headshot_url || null
+                        },
+                        team: {
+                            teamId: result.team.teamId,
+                            teamName: result.team.teamName,
+                            nationality: result.team.teamNationality || result.team.nationality
+                        },
+                        time: result.time || result.fastLap || '-',
+                        position: result.position,
+                        points: result.points || 0,
+                        gridPosition: result.gridPosition
+                    };
+                });
                 break;
             default: // Practice sessions (fp1, fp2, fp3)
-                results = response.data.races[`${session}Results`].map((result: any) => ({
-                    driver: {
-                        driverId: result.driver.driverId,
-                        name: result.driver.name,
-                        surname: result.driver.surname,
-                        shortName: result.driver.shortName,
-                        number: result.driver.number,
-                        nationality: result.driver.nationality
-                    },
-                    team: {
-                        teamId: result.team.teamId,
-                        teamName: result.team.teamName,
-                        nationality: result.team.teamNationality || result.team.nationality
-                    },
-                    time: result.time || '-',
-                    position: result.position
-                }));
+                results = response.data.races[`${session}Results`].map((result: any) => {
+                    const openF1Driver = openF1Drivers.find(
+                        d => d.name_acronym === result.driver.shortName
+                    );
+
+                    return {
+                        driver: {
+                            driverId: result.driver.driverId,
+                            name: result.driver.name,
+                            surname: result.driver.surname,
+                            shortName: result.driver.shortName,
+                            number: result.driver.number,
+                            nationality: result.driver.nationality,
+                            imageUrl: openF1Driver?.headshot_url || null
+                        },
+                        team: {
+                            teamId: result.team.teamId,
+                            teamName: result.team.teamName,
+                            nationality: result.team.teamNationality || result.team.nationality
+                        },
+                        time: result.time || '-',
+                        position: result.position
+                    };
+                });
         }
 
         return { data: results };
