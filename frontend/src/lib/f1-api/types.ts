@@ -63,10 +63,11 @@ export interface Race {
 
 export interface Session {
     id: string;
-    type: 'fp1' | 'fp2' | 'fp3' | 'qualifying' | 'race' | 'sprintQualy' | 'sprintRace';
+    type: string;
     date: string;
     time: string;
-    status: 'upcoming' | 'ongoing' | 'completed';
+    status: 'upcoming' | 'live' | 'completed';
+    session_key?: number | null;
 }
 
 export interface Track {

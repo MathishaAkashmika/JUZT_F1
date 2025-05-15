@@ -26,6 +26,7 @@ import DriverStandingsPanel from '@/components/dashboard/DriverStandingsPanel'
 import SessionInfoPanel from '@/components/dashboard/SessionInfoPanel'
 import ConstructorStandingsPanel from '@/components/dashboard/ConstructorStandingsPanel'
 import SessionResultsPanel from '@/components/dashboard/SessionResultsPanel'
+import SessionDetails from '@/components/SessionDetails' // Added import for SessionDetails
 
 export default function RaceDashboard() {
     const [selectedSeason, setSelectedSeason] = useState("")
@@ -44,6 +45,9 @@ export default function RaceDashboard() {
     const [isLoadingDriverStandings, setIsLoadingDriverStandings] = useState(false)
     const [constructorStandings, setConstructorStandings] = useState<ConstructorChampionship[]>([])
     const [isLoadingConstructorStandings, setIsLoadingConstructorStandings] = useState(false)
+
+    // State to track the current session object for SessionDetails
+    const [currentSession, setCurrentSession] = useState<Session | null>(null);
 
     // Fetch seasons from the API
     useEffect(() => {
@@ -153,6 +157,17 @@ export default function RaceDashboard() {
         })
     }, [selectedSeason])
 
+    // Update currentSession when selectedSession changes
+    useEffect(() => {
+        if (!selectedSession || sessions.length === 0) {
+            setCurrentSession(null);
+            return;
+        }
+
+        const sessionObject = sessions.find(s => s.id === selectedSession);
+        setCurrentSession(sessionObject || null);
+    }, [selectedSession, sessions]);
+
     return (
         <div className="min-h-screen bg-gradient-to-b from-[#0F0F1A] via-[#1A1A2E] to-[#0F0F1A] text-white font-mono tracking-wide">
             <Navbar />
@@ -183,6 +198,14 @@ export default function RaceDashboard() {
                     isLoadingTracks={isLoadingTracks}
                     isLoadingSessions={isLoadingSessions}
                 />
+
+                {/* Session Details Panel */}
+                {currentSession && (
+                    <div className="w-full bg-[#1E1E2E]/60 border border-gray-800 rounded-xl p-4 mb-4">
+                        <h2 className="text-xl font-bold mb-3 text-blue-300">Session Details</h2>
+                        <SessionDetails session={currentSession} />
+                    </div>
+                )}
 
                 {/* Driver Highlight Cards */}
                 <DriverHighlightCards
