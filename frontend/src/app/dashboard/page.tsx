@@ -27,6 +27,7 @@ import SessionInfoPanel from '@/components/dashboard/SessionInfoPanel'
 import ConstructorStandingsPanel from '@/components/dashboard/ConstructorStandingsPanel'
 import SessionResultsPanel from '@/components/dashboard/SessionResultsPanel'
 import SessionDetails from '@/components/SessionDetails'
+import LapChart from '@/components/LapChart' // Add proper import for LapChart
 import '@/styles/LapChart.css' // Add this import for LapChart styling
 
 export default function RaceDashboard() {
@@ -200,14 +201,6 @@ export default function RaceDashboard() {
                     isLoadingSessions={isLoadingSessions}
                 />
 
-                {/* Session Details Panel with Lap Chart */}
-                {currentSession && (
-                    <div className="w-full bg-[#1E1E2E]/60 border border-gray-800 rounded-xl p-4 mb-4">
-                        <h2 className="text-xl font-bold mb-3 text-blue-300">Session Details</h2>
-                        <SessionDetails session={currentSession} />
-                    </div>
-                )}
-
                 {/* Driver Highlight Cards */}
                 <DriverHighlightCards
                     sessionResults={sessionResults}
@@ -256,6 +249,23 @@ export default function RaceDashboard() {
                         />
                     </div>
                 </div>
+
+                {/* Session Details and Lap Chart - Moved to the bottom */}
+                {currentSession && (
+                    <>
+                        <div className="w-full mt-8 bg-[#1E1E2E]/60 border border-gray-800 rounded-xl p-4">
+                            <h2 className="text-xl font-bold mb-3 text-blue-300">Session Details</h2>
+                            <SessionDetails session={currentSession} />
+                        </div>
+
+                        {/* Lap Chart Component - Added below session details */}
+                        {currentSession.id && (
+                            <div className="w-full">
+                                <LapChart sessionKey={parseInt(currentSession.id)} />
+                            </div>
+                        )}
+                    </>
+                )}
             </div>
         </div>
     )
