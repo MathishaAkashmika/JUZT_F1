@@ -79,7 +79,7 @@ const LapChart: React.FC<LapChartProps> = ({ sessionKey }) => {
         if (lap.lap_duration !== null) return 'Complete';
         if (lap.is_pit_out_lap) return 'Pit Out';
         return 'Incomplete';
-    };    const getLapStatusColor = (status: string) => {
+    }; const getLapStatusColor = (status: string) => {
         switch (status) {
             case 'Complete': return '#10B981'; // Emerald green
             case 'Pit Out': return '#F59E0B';  // Amber
@@ -87,7 +87,7 @@ const LapChart: React.FC<LapChartProps> = ({ sessionKey }) => {
             default: return '#6B7280';  // Gray
         }
     };
-    
+
     const getLapStatusBgColor = (status: string) => {
         switch (status) {
             case 'Complete': return 'bg-emerald-500'; // Emerald green
@@ -115,7 +115,7 @@ const LapChart: React.FC<LapChartProps> = ({ sessionKey }) => {
 
     const handleDriverSelect = (driverNumber: number) => {
         setSelectedDriver(driverNumber);
-    };    if (loading) return (
+    }; if (loading) return (
         <div className="flex items-center justify-center h-64 bg-gray-900 bg-opacity-80 rounded-xl border border-gray-700">
             <div className="text-xl font-semibold text-gray-100 animate-pulse flex items-center">
                 <svg className="animate-spin -ml-1 mr-3 h-6 w-6 text-cyan-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -125,14 +125,14 @@ const LapChart: React.FC<LapChartProps> = ({ sessionKey }) => {
                 Loading Lap Data...
             </div>
         </div>
-    );    return (
+    ); return (
         <div className="w-full mt-12 mb-8 border-t border-gray-700 pt-8">
             <div className="bg-[#1E1E32] rounded-xl p-6 mb-4 transition-all duration-300 hover:shadow-lg border border-gray-800 shadow-xl">
                 <h2 className="text-2xl font-bold text-white mb-4 flex items-center">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                     </svg>
-                    Lap Analysis
+                    LapAnalysis
                 </h2>
                 <p className="text-sm text-gray-300 mb-6">Detailed lap times and telemetry data from the current session</p>                {/* Driver Selection */}
                 <div className="mb-8 animate-fadeIn">
@@ -341,183 +341,183 @@ const LapChart: React.FC<LapChartProps> = ({ sessionKey }) => {
                             </div>
                         )}
                     </div>
-                ) : (                    selectedLap && (
-                        <div className="animate-fadeIn">
-                            <div className="flex justify-between items-center mb-6">
-                                <h2 className="text-xl font-semibold text-white flex items-center">
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                ) : (selectedLap && (
+                    <div className="animate-fadeIn">
+                        <div className="flex justify-between items-center mb-6">
+                            <h2 className="text-xl font-semibold text-white flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                </svg>
+                                Lap {selectedLap.lap_number} Details
+                            </h2>
+                            <button
+                                onClick={handleBackToOverview}
+                                className="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-gray-200 transition-all duration-300 flex items-center border border-gray-700 shadow-md hover:shadow-lg"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                                </svg>
+                                Back to Overview
+                            </button>
+                        </div>                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="animate-fadeIn" style={{ animationDelay: "100ms" }}>
+                                <h3 className="text-lg font-medium mb-4 flex items-center text-gray-100">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
-                                    Lap {selectedLap.lap_number} Details
-                                </h2>
-                                <button
-                                    onClick={handleBackToOverview}
-                                    className="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-gray-200 transition-all duration-300 flex items-center border border-gray-700 shadow-md hover:shadow-lg"
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                                    Lap Information
+                                </h3>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="bg-[#1A1A2E] p-4 rounded-lg shadow-md border border-gray-700 transition-all duration-300 hover:shadow-cyan-900/10 hover:translate-y-[-2px]">
+                                        <p className="text-sm text-gray-400 mb-1">Start Time</p>
+                                        <p className="font-medium text-gray-200">{new Date(selectedLap.date_start).toLocaleString()}</p>
+                                    </div>
+                                    <div className="bg-[#1A1A2E] p-4 rounded-lg shadow-md border border-gray-700 transition-all duration-300 hover:shadow-cyan-900/10 hover:translate-y-[-2px]">
+                                        <p className="text-sm text-gray-400 mb-1">Lap Status</p>
+                                        <p className="font-medium text-gray-200">
+                                            <span className={`px-2 py-0.5 rounded-md text-sm ${getLapStatusBgColor(selectedLap.completion_status)} bg-opacity-20 text-${getLapStatusBgColor(selectedLap.completion_status).replace('bg-', '')}`}>
+                                                {selectedLap.completion_status}
+                                            </span>
+                                        </p>
+                                    </div>
+                                    <div className="bg-[#1A1A2E] p-4 rounded-lg shadow-md border border-gray-700 transition-all duration-300 hover:shadow-cyan-900/10 hover:translate-y-[-2px]">
+                                        <p className="text-sm text-gray-400 mb-1">Total Lap Time</p>
+                                        <p className="font-medium text-gray-200">{formatTime(selectedLap.lap_duration)}</p>
+                                    </div>
+                                    <div className="bg-[#1A1A2E] p-4 rounded-lg shadow-md border border-gray-700 transition-all duration-300 hover:shadow-cyan-900/10 hover:translate-y-[-2px]">
+                                        <p className="text-sm text-gray-400 mb-1">Pit Out Lap</p>
+                                        <p className="font-medium text-gray-200">{selectedLap.is_pit_out_lap ? 'Yes' : 'No'}</p>
+                                    </div>
+                                </div>
+                                <h3 className="text-lg font-medium mt-6 mb-4 flex items-center text-gray-100">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
-                                    Back to Overview
-                                </button>
-                            </div>                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="animate-fadeIn" style={{ animationDelay: "100ms" }}>
-                                    <h3 className="text-lg font-medium mb-4 flex items-center text-gray-100">
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                        </svg>
-                                        Lap Information
-                                    </h3>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div className="bg-[#1A1A2E] p-4 rounded-lg shadow-md border border-gray-700 transition-all duration-300 hover:shadow-cyan-900/10 hover:translate-y-[-2px]">
-                                            <p className="text-sm text-gray-400 mb-1">Start Time</p>
-                                            <p className="font-medium text-gray-200">{new Date(selectedLap.date_start).toLocaleString()}</p>
-                                        </div>
-                                        <div className="bg-[#1A1A2E] p-4 rounded-lg shadow-md border border-gray-700 transition-all duration-300 hover:shadow-cyan-900/10 hover:translate-y-[-2px]">
-                                            <p className="text-sm text-gray-400 mb-1">Lap Status</p>
-                                            <p className="font-medium text-gray-200">
-                                                <span className={`px-2 py-0.5 rounded-md text-sm ${getLapStatusBgColor(selectedLap.completion_status)} bg-opacity-20 text-${getLapStatusBgColor(selectedLap.completion_status).replace('bg-', '')}`}>
-                                                    {selectedLap.completion_status}
-                                                </span>
-                                            </p>
-                                        </div>
-                                        <div className="bg-[#1A1A2E] p-4 rounded-lg shadow-md border border-gray-700 transition-all duration-300 hover:shadow-cyan-900/10 hover:translate-y-[-2px]">
-                                            <p className="text-sm text-gray-400 mb-1">Total Lap Time</p>
-                                            <p className="font-medium text-gray-200">{formatTime(selectedLap.lap_duration)}</p>
-                                        </div>
-                                        <div className="bg-[#1A1A2E] p-4 rounded-lg shadow-md border border-gray-700 transition-all duration-300 hover:shadow-cyan-900/10 hover:translate-y-[-2px]">
-                                            <p className="text-sm text-gray-400 mb-1">Pit Out Lap</p>
-                                            <p className="font-medium text-gray-200">{selectedLap.is_pit_out_lap ? 'Yes' : 'No'}</p>
-                                        </div>
+                                    Sector Times
+                                </h3>
+                                <div className="grid grid-cols-3 gap-4">
+                                    <div className="bg-[#1A1A2E] p-4 rounded-lg shadow-md border border-gray-700 transition-all duration-300 hover:shadow-emerald-900/10 hover:translate-y-[-2px]">
+                                        <p className="text-sm text-gray-400 mb-1">Sector 1</p>
+                                        <p className="font-medium text-gray-200">{formatTime(selectedLap.duration_sector_1)}</p>
                                     </div>
-                                    <h3 className="text-lg font-medium mt-6 mb-4 flex items-center text-gray-100">
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                        </svg>
-                                        Sector Times
-                                    </h3>
-                                    <div className="grid grid-cols-3 gap-4">
-                                        <div className="bg-[#1A1A2E] p-4 rounded-lg shadow-md border border-gray-700 transition-all duration-300 hover:shadow-emerald-900/10 hover:translate-y-[-2px]">
-                                            <p className="text-sm text-gray-400 mb-1">Sector 1</p>
-                                            <p className="font-medium text-gray-200">{formatTime(selectedLap.duration_sector_1)}</p>
-                                        </div>
-                                        <div className="bg-[#1A1A2E] p-4 rounded-lg shadow-md border border-gray-700 transition-all duration-300 hover:shadow-emerald-900/10 hover:translate-y-[-2px]">
-                                            <p className="text-sm text-gray-400 mb-1">Sector 2</p>
-                                            <p className="font-medium text-gray-200">{formatTime(selectedLap.duration_sector_2)}</p>
-                                        </div>
-                                        <div className="bg-[#1A1A2E] p-4 rounded-lg shadow-md border border-gray-700 transition-all duration-300 hover:shadow-emerald-900/10 hover:translate-y-[-2px]">
-                                            <p className="text-sm text-gray-400 mb-1">Sector 3</p>
-                                            <p className="font-medium text-gray-200">{formatTime(selectedLap.duration_sector_3)}</p>
-                                        </div>
+                                    <div className="bg-[#1A1A2E] p-4 rounded-lg shadow-md border border-gray-700 transition-all duration-300 hover:shadow-emerald-900/10 hover:translate-y-[-2px]">
+                                        <p className="text-sm text-gray-400 mb-1">Sector 2</p>
+                                        <p className="font-medium text-gray-200">{formatTime(selectedLap.duration_sector_2)}</p>
                                     </div>
-                                    <h3 className="text-lg font-medium mt-6 mb-4 flex items-center text-gray-100">
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                                        </svg>
-                                        Speed Data
-                                    </h3>
-                                    <div className="grid grid-cols-3 gap-4">
-                                        <div className="bg-[#1A1A2E] p-4 rounded-lg shadow-md border border-gray-700 transition-all duration-300 hover:shadow-rose-900/10 hover:translate-y-[-2px]">
-                                            <p className="text-sm text-gray-400 mb-1">I1 Speed</p>
-                                            <p className="font-medium text-gray-200">{selectedLap.i1_speed !== null ? `${selectedLap.i1_speed} km/h` : 'N/A'}</p>
-                                        </div>
-                                        <div className="bg-[#1A1A2E] p-4 rounded-lg shadow-md border border-gray-700 transition-all duration-300 hover:shadow-rose-900/10 hover:translate-y-[-2px]">
-                                            <p className="text-sm text-gray-400 mb-1">I2 Speed</p>
-                                            <p className="font-medium text-gray-200">{selectedLap.i2_speed !== null ? `${selectedLap.i2_speed} km/h` : 'N/A'}</p>
-                                        </div>
-                                        <div className="bg-[#1A1A2E] p-4 rounded-lg shadow-md border border-gray-700 transition-all duration-300 hover:shadow-rose-900/10 hover:translate-y-[-2px]">
-                                            <p className="text-sm text-gray-400 mb-1">ST Speed</p>
-                                            <p className="font-medium text-gray-200">{selectedLap.st_speed !== null ? `${selectedLap.st_speed} km/h` : 'N/A'}</p>
-                                        </div>
+                                    <div className="bg-[#1A1A2E] p-4 rounded-lg shadow-md border border-gray-700 transition-all duration-300 hover:shadow-emerald-900/10 hover:translate-y-[-2px]">
+                                        <p className="text-sm text-gray-400 mb-1">Sector 3</p>
+                                        <p className="font-medium text-gray-200">{formatTime(selectedLap.duration_sector_3)}</p>
                                     </div>
-                                </div>                                <div className="animate-fadeIn" style={{ animationDelay: "200ms" }}>
-                                    <h3 className="text-lg font-medium mb-4 flex items-center text-gray-100">
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-fuchsia-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                                        </svg>
-                                        Segment Data
-                                    </h3>
-                                    {/* Sector 1 Segments */}
-                                    <div className="mb-5">
-                                        <h4 className="text-md font-medium mb-2 text-cyan-300">Sector 1 Segments</h4>
-                                        <div className="h-32 bg-[#1A1A2E] p-3 rounded-lg border border-gray-700 shadow-md transition-all duration-300 hover:shadow-cyan-900/10">
-                                            <ResponsiveContainer width="100%" height="100%">
-                                                <BarChart data={selectedLap.segments_sector_1?.map((value: number, index: number) => ({ name: `S1-${index + 1}`, value: value === null ? 0 : value }))} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                                                    <CartesianGrid strokeDasharray="3 3" opacity={0.3} stroke="#374151" />
-                                                    <XAxis dataKey="name" stroke="#9CA3AF" />
-                                                    <YAxis domain={[0, 3000]} stroke="#9CA3AF" />
-                                                    <Tooltip
-                                                        contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#F9FAFB', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.3)' }}
-                                                        formatter={(value: any) => [value !== 0 ? `${(value / 1000).toFixed(3)}s` : 'N/A']}
-                                                        itemStyle={{ color: '#F3F4F6' }}
-                                                        labelStyle={{ color: '#F9FAFB', fontWeight: 'bold' }}
-                                                    />
-                                                    <Bar
-                                                        dataKey="value"
-                                                        fill="#22D3EE"
-                                                        animationDuration={1200}
-                                                        animationBegin={300}
-                                                        radius={[4, 4, 0, 0]}
-                                                    />
-                                                </BarChart>
-                                            </ResponsiveContainer>
-                                        </div>
+                                </div>
+                                <h3 className="text-lg font-medium mt-6 mb-4 flex items-center text-gray-100">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                    </svg>
+                                    Speed Data
+                                </h3>
+                                <div className="grid grid-cols-3 gap-4">
+                                    <div className="bg-[#1A1A2E] p-4 rounded-lg shadow-md border border-gray-700 transition-all duration-300 hover:shadow-rose-900/10 hover:translate-y-[-2px]">
+                                        <p className="text-sm text-gray-400 mb-1">I1 Speed</p>
+                                        <p className="font-medium text-gray-200">{selectedLap.i1_speed !== null ? `${selectedLap.i1_speed} km/h` : 'N/A'}</p>
                                     </div>
-                                    {/* Sector 2 Segments */}
-                                    <div className="mb-5">
-                                        <h4 className="text-md font-medium mb-2 text-emerald-300">Sector 2 Segments</h4>
-                                        <div className="h-32 bg-[#1A1A2E] p-3 rounded-lg border border-gray-700 shadow-md transition-all duration-300 hover:shadow-emerald-900/10">
-                                            <ResponsiveContainer width="100%" height="100%">
-                                                <BarChart data={selectedLap.segments_sector_2?.map((value: number, index: number) => ({ name: `S2-${index + 1}`, value: value === null ? 0 : value }))} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                                                    <CartesianGrid strokeDasharray="3 3" opacity={0.3} stroke="#374151" />
-                                                    <XAxis dataKey="name" stroke="#9CA3AF" />
-                                                    <YAxis domain={[0, 3000]} stroke="#9CA3AF" />
-                                                    <Tooltip
-                                                        contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#F9FAFB', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.3)' }}
-                                                        formatter={(value: any) => [value !== 0 ? `${(value / 1000).toFixed(3)}s` : 'N/A']}
-                                                        itemStyle={{ color: '#F3F4F6' }}
-                                                        labelStyle={{ color: '#F9FAFB', fontWeight: 'bold' }}
-                                                    />
-                                                    <Bar
-                                                        dataKey="value"
-                                                        fill="#10B981"
-                                                        animationDuration={1200}
-                                                        animationBegin={600}
-                                                        radius={[4, 4, 0, 0]}
-                                                    />
-                                                </BarChart>
-                                            </ResponsiveContainer>
-                                        </div>
+                                    <div className="bg-[#1A1A2E] p-4 rounded-lg shadow-md border border-gray-700 transition-all duration-300 hover:shadow-rose-900/10 hover:translate-y-[-2px]">
+                                        <p className="text-sm text-gray-400 mb-1">I2 Speed</p>
+                                        <p className="font-medium text-gray-200">{selectedLap.i2_speed !== null ? `${selectedLap.i2_speed} km/h` : 'N/A'}</p>
                                     </div>
-                                    {/* Sector 3 Segments */}
-                                    <div>
-                                        <h4 className="text-md font-medium mb-2 text-rose-300">Sector 3 Segments</h4>
-                                        <div className="h-32 bg-[#1A1A2E] p-3 rounded-lg border border-gray-700 shadow-md transition-all duration-300 hover:shadow-rose-900/10">
-                                            <ResponsiveContainer width="100%" height="100%">
-                                                <BarChart data={selectedLap.segments_sector_3?.map((value: number, index: number) => ({ name: `S3-${index + 1}`, value: value === null ? 0 : value }))} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                                                    <CartesianGrid strokeDasharray="3 3" opacity={0.3} stroke="#374151" />
-                                                    <XAxis dataKey="name" stroke="#9CA3AF" />
-                                                    <YAxis domain={[0, 3000]} stroke="#9CA3AF" />
-                                                    <Tooltip
-                                                        contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#F9FAFB', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.3)' }}
-                                                        formatter={(value: any) => [value !== 0 ? `${(value / 1000).toFixed(3)}s` : 'N/A']}
-                                                        itemStyle={{ color: '#F3F4F6' }}
-                                                        labelStyle={{ color: '#F9FAFB', fontWeight: 'bold' }}
-                                                    />
-                                                    <Bar
-                                                        dataKey="value"
-                                                        fill="#EF4444"
-                                                        animationDuration={1200}
-                                                        animationBegin={900}
-                                                        radius={[4, 4, 0, 0]}
-                                                    />
-                                                </BarChart>
-                                            </ResponsiveContainer>
-                                        </div>
+                                    <div className="bg-[#1A1A2E] p-4 rounded-lg shadow-md border border-gray-700 transition-all duration-300 hover:shadow-rose-900/10 hover:translate-y-[-2px]">
+                                        <p className="text-sm text-gray-400 mb-1">ST Speed</p>
+                                        <p className="font-medium text-gray-200">{selectedLap.st_speed !== null ? `${selectedLap.st_speed} km/h` : 'N/A'}</p>
+                                    </div>
+                                </div>
+                            </div>                                <div className="animate-fadeIn" style={{ animationDelay: "200ms" }}>
+                                <h3 className="text-lg font-medium mb-4 flex items-center text-gray-100">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-fuchsia-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                    </svg>
+                                    Segment Data
+                                </h3>
+                                {/* Sector 1 Segments */}
+                                <div className="mb-5">
+                                    <h4 className="text-md font-medium mb-2 text-cyan-300">Sector 1 Segments</h4>
+                                    <div className="h-32 bg-[#1A1A2E] p-3 rounded-lg border border-gray-700 shadow-md transition-all duration-300 hover:shadow-cyan-900/10">
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <BarChart data={selectedLap.segments_sector_1?.map((value: number, index: number) => ({ name: `S1-${index + 1}`, value: value === null ? 0 : value }))} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                                                <CartesianGrid strokeDasharray="3 3" opacity={0.3} stroke="#374151" />
+                                                <XAxis dataKey="name" stroke="#9CA3AF" />
+                                                <YAxis domain={[0, 3000]} stroke="#9CA3AF" />
+                                                <Tooltip
+                                                    contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#F9FAFB', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.3)' }}
+                                                    formatter={(value: any) => [value !== 0 ? `${(value / 1000).toFixed(3)}s` : 'N/A']}
+                                                    itemStyle={{ color: '#F3F4F6' }}
+                                                    labelStyle={{ color: '#F9FAFB', fontWeight: 'bold' }}
+                                                />
+                                                <Bar
+                                                    dataKey="value"
+                                                    fill="#22D3EE"
+                                                    animationDuration={1200}
+                                                    animationBegin={300}
+                                                    radius={[4, 4, 0, 0]}
+                                                />
+                                            </BarChart>
+                                        </ResponsiveContainer>
+                                    </div>
+                                </div>
+                                {/* Sector 2 Segments */}
+                                <div className="mb-5">
+                                    <h4 className="text-md font-medium mb-2 text-emerald-300">Sector 2 Segments</h4>
+                                    <div className="h-32 bg-[#1A1A2E] p-3 rounded-lg border border-gray-700 shadow-md transition-all duration-300 hover:shadow-emerald-900/10">
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <BarChart data={selectedLap.segments_sector_2?.map((value: number, index: number) => ({ name: `S2-${index + 1}`, value: value === null ? 0 : value }))} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                                                <CartesianGrid strokeDasharray="3 3" opacity={0.3} stroke="#374151" />
+                                                <XAxis dataKey="name" stroke="#9CA3AF" />
+                                                <YAxis domain={[0, 3000]} stroke="#9CA3AF" />
+                                                <Tooltip
+                                                    contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#F9FAFB', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.3)' }}
+                                                    formatter={(value: any) => [value !== 0 ? `${(value / 1000).toFixed(3)}s` : 'N/A']}
+                                                    itemStyle={{ color: '#F3F4F6' }}
+                                                    labelStyle={{ color: '#F9FAFB', fontWeight: 'bold' }}
+                                                />
+                                                <Bar
+                                                    dataKey="value"
+                                                    fill="#10B981"
+                                                    animationDuration={1200}
+                                                    animationBegin={600}
+                                                    radius={[4, 4, 0, 0]}
+                                                />
+                                            </BarChart>
+                                        </ResponsiveContainer>
+                                    </div>
+                                </div>
+                                {/* Sector 3 Segments */}
+                                <div>
+                                    <h4 className="text-md font-medium mb-2 text-rose-300">Sector 3 Segments</h4>
+                                    <div className="h-32 bg-[#1A1A2E] p-3 rounded-lg border border-gray-700 shadow-md transition-all duration-300 hover:shadow-rose-900/10">
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <BarChart data={selectedLap.segments_sector_3?.map((value: number, index: number) => ({ name: `S3-${index + 1}`, value: value === null ? 0 : value }))} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                                                <CartesianGrid strokeDasharray="3 3" opacity={0.3} stroke="#374151" />
+                                                <XAxis dataKey="name" stroke="#9CA3AF" />
+                                                <YAxis domain={[0, 3000]} stroke="#9CA3AF" />
+                                                <Tooltip
+                                                    contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#F9FAFB', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.3)' }}
+                                                    formatter={(value: any) => [value !== 0 ? `${(value / 1000).toFixed(3)}s` : 'N/A']}
+                                                    itemStyle={{ color: '#F3F4F6' }}
+                                                    labelStyle={{ color: '#F9FAFB', fontWeight: 'bold' }}
+                                                />
+                                                <Bar
+                                                    dataKey="value"
+                                                    fill="#EF4444"
+                                                    animationDuration={1200}
+                                                    animationBegin={900}
+                                                    radius={[4, 4, 0, 0]}
+                                                />
+                                            </BarChart>
+                                        </ResponsiveContainer>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    )
+                    </div>
+                )
                 )}
             </div>
         </div>

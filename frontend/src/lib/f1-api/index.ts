@@ -8,3 +8,4 @@ export { getRaceSessions } from './sessions';
 export { getSessionResults } from './results';
 export { getDriverStandings } from './drivers';
 export { getConstructorChampionship } from './constructors';
+export { getDriversForTyreStrategy, getDriverStints, getAllDriverStints, getTyreColor } from './tyres';
