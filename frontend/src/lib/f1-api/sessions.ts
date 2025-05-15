@@ -26,6 +26,7 @@ export const getRaceSessions = async (year: string, raceId: string): Promise<{ d
             if (Array.isArray(openF1Response.data)) {
                 openF1Sessions = openF1Response.data;
                 console.log(`Received ${openF1Sessions.length} sessions from OpenF1 API`);
+                console.log('OpenF1 sessions:', JSON.stringify(openF1Sessions, null, 2));
             } else {
                 console.error('OpenF1 API returned invalid data format:', openF1Response.data);
                 return { data: [], error: { message: 'Invalid OpenF1 API response format', status: 500 } };
@@ -60,7 +61,10 @@ export const getRaceSessions = async (year: string, raceId: string): Promise<{ d
         const addSession = (schedule: any, type: string, sessionType: string) => {
             if (schedule?.date) {
                 try {
+                    console.log(`Processing session: ${type} (${sessionType})`);
+                    console.log('Schedule:', JSON.stringify(schedule, null, 2));
                     const session_key = findSessionKeyByDate(openF1Sessions, schedule.date, schedule.time, sessionType);
+                    console.log(`Found session key for ${type}:`, session_key);
                     sessions.push({
                         id: type,
                         type: type,
@@ -84,6 +88,7 @@ export const getRaceSessions = async (year: string, raceId: string): Promise<{ d
         addSession(race.schedule.sprintQualy, 'sprintQualy', 'Sprint Qualifying');
         addSession(race.schedule.sprintRace, 'sprintRace', 'Sprint');
 
+        console.log('Final sessions:', JSON.stringify(sessions, null, 2));
         return { data: sessions };
     } catch (error) {
         console.error('Error in getRaceSessions:', error);
@@ -107,6 +112,57 @@ const findSessionKeyByDate = (openF1Sessions: any[], date: string, time: string,
 
     console.log(`Looking for session: ${sessionType} on ${date} at ${time}`);
     console.log(`Target datetime: ${targetDateTime}`);
+    console.log('Available OpenF1 sessions:', JSON.stringify(openF1Sessions.map(s => ({
+        name: s.session_name,
+        type: s.session_type,
+        date: s.date_start,
+        key: s.session_key
+    })), null, 2));
+
+    // Special handling for sprint sessions
+    if (sessionType.toLowerCase().includes('sprint')) {
+        console.log('Processing sprint session');
+
+        // First try to find by exact date and session type
+        const exactMatch = openF1Sessions.find((session) => {
+            if (!session || !session.date_start) return false;
+            const sessionDate = session.date_start.substring(0, 10);
+            const isDateMatch = sessionDate === date;
+            const isTypeMatch = session.session_type === 'Race' && session.session_name === 'Sprint';
+
+            console.log(`Checking sprint session: ${session.session_name}`);
+            console.log(`Date match: ${isDateMatch}, Type match: ${isTypeMatch}`);
+            console.log(`Session details:`, JSON.stringify(session, null, 2));
+
+            return isDateMatch && isTypeMatch;
+        });
+
+        if (exactMatch?.session_key) {
+            console.log(`Found exact match for sprint with key: ${exactMatch.session_key}`);
+            return exactMatch.session_key;
+        }
+
+        // If no exact match, try to find by session type and closest date
+        const typeMatches = openF1Sessions.filter((session) => {
+            if (!session) return false;
+            return session.session_type === 'Race' && session.session_name === 'Sprint';
+        });
+
+        if (typeMatches.length > 0) {
+            console.log(`Found ${typeMatches.length} potential sprint session matches`);
+            // Sort by date difference and take the closest one
+            const targetDate = new Date(date).getTime();
+            typeMatches.sort((a, b) => {
+                const dateA = new Date(a.date_start).getTime();
+                const dateB = new Date(b.date_start).getTime();
+                return Math.abs(dateA - targetDate) - Math.abs(dateB - targetDate);
+            });
+
+            const closestMatch = typeMatches[0];
+            console.log(`Using closest sprint session match: ${closestMatch.session_name} with key: ${closestMatch.session_key}`);
+            return closestMatch.session_key;
+        }
+    }
 
     // Special handling for practice sessions
     if (sessionType.toLowerCase().includes('practice') ||
@@ -252,6 +308,11 @@ const matchSessionType = (apiSessionType: string, ourSessionType: string): boole
 
     console.log(`Comparing session types: API="${apiType}" vs Our="${ourType}"`);
 
+    // Enhanced matching for sprint sessions
+    if (ourType.includes('sprint')) {
+        return apiType === 'race' && apiType.includes('sprint');
+    }
+
     // Enhanced matching for practice sessions
     if (ourType.includes('practice 1') || ourType.includes('fp1')) {
         return apiType === 'practice' && apiType.includes('practice 1');
@@ -276,15 +337,7 @@ const matchSessionType = (apiSessionType: string, ourSessionType: string): boole
 
     // Enhanced matching for race
     if (ourType === 'race') {
-        return apiType === 'race' ||
-            apiType.includes('grand prix') ||
-            apiType.includes('gp');
-    }
-
-    // Match sprint sessions
-    if ((ourType.includes('sprint') && apiType.includes('sprint')) ||
-        (ourType.includes('sprintqualy') && apiType.includes('sprint qualifying'))) {
-        return true;
+        return apiType === 'race' && !apiType.includes('sprint');
     }
 
     return false;

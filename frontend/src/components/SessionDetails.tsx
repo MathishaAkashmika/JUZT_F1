@@ -1,5 +1,5 @@
-import React from 'react';
-import { Session } from '../lib/f1-api/types';
+import React, { useState } from 'react';
+import { Session } from '../lib/f1-api';
 import LapChart from './LapChart';
 
 interface SessionDetailsProps {
@@ -7,46 +7,75 @@ interface SessionDetailsProps {
 }
 
 const SessionDetails: React.FC<SessionDetailsProps> = ({ session }) => {
+    const [showLapChart, setShowLapChart] = useState<boolean>(true);
+
+    // Format date for display
+    const formatDate = (dateStr: string) => {
+        if (!dateStr) return 'N/A';
+        const date = new Date(dateStr);
+        return date.toLocaleDateString();
+    };
+
+    // Format time for display
+    const formatTime = (timeStr: string) => {
+        if (!timeStr) return 'N/A';
+        return timeStr.replace('Z', '').replace(/:\d{2}$/, '');
+    };
+
     return (
-        <div className="session-details bg-[#1E1E2E]/80 border border-gray-700 shadow rounded-lg p-4">
-            <div className="mb-6">
-                <h2 className="text-xl font-bold capitalize text-blue-300">{session.type}</h2>
-                <p className="text-sm text-gray-300">
-                    Date: {session.date} | Time: {session.time} | Status: <span className="capitalize">{session.status}</span>
-                </p>
-                {session.session_key ? (
-                    <p className="text-sm bg-blue-900/50 border border-blue-700 rounded p-2 mt-2">
-                        Session Key: {session.session_key}
+        <div className="session-details">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div className="bg-[#232333]/60 p-4 rounded-lg">
+                    <h3 className="text-lg font-semibold text-blue-200 mb-2">Session Information</h3>
+                    <div className="grid grid-cols-2 gap-2">
+                        <div className="text-gray-400">Type:</div>
+                        <div className="font-medium">{session.type.toUpperCase()}</div>
+                        <div className="text-gray-400">Date:</div>
+                        <div className="font-medium">{formatDate(session.date)}</div>
+                        <div className="text-gray-400">Time:</div>
+                        <div className="font-medium">{formatTime(session.time)}</div>
+                        <div className="text-gray-400">Status:</div>
+                        <div className="font-medium">{session.status}</div>
+                    </div>
+                </div>
+
+                <div className="bg-[#232333]/60 p-4 rounded-lg">
+                    <h3 className="text-lg font-semibold text-blue-200 mb-2">Session Analysis</h3>
+                    <p className="text-sm mb-4">
+                        View detailed lap time analysis for this session.
                     </p>
-                ) : (
-                    <p className="text-sm text-orange-400 mt-2">
-                        No session key available
-                    </p>
-                )}
+                    <div className="flex items-center justify-between">
+                        <button
+                            onClick={() => setShowLapChart(!showLapChart)}
+                            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+                        >
+                            {showLapChart ? 'Hide Lap Chart' : 'Show Lap Chart'}
+                        </button>
+                        {session.session_key ? (
+                            <span className="text-xs text-gray-400">Session Key: {session.session_key}</span>
+                        ) : (
+                            <span className="text-xs text-red-400">No session key available</span>
+                        )}
+                    </div>
+                </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-                <div className="p-3 bg-[#252538]/80 border border-gray-700 rounded-lg">
-                    <h3 className="font-medium text-blue-300 mb-1">Session Type</h3>
-                    <p className="capitalize text-white">{session.type}</p>
+            {showLapChart && session.session_key ? (
+                <div className="bg-[#1E1E2E]/80 border border-gray-700 rounded-lg p-4 overflow-hidden">
+                    <h3 className="text-lg font-semibold text-blue-200 mb-4">Lap Time Analysis</h3>
+                    <LapChart
+                        sessionKey={session.session_key}
+                        width={Math.min(window.innerWidth - 100, 1200)}
+                        height={500}
+                    />
                 </div>
-
-                <div className="p-3 bg-[#252538]/80 border border-gray-700 rounded-lg">
-                    <h3 className="font-medium text-blue-300 mb-1">Status</h3>
-                    <p className="capitalize text-white">{session.status}</p>
+            ) : showLapChart ? (
+                <div className="bg-[#1E1E2E]/80 border border-gray-700 rounded-lg p-8 text-center">
+                    <p className="text-yellow-400">
+                        Lap chart is not available for this session. No session key was found.
+                    </p>
                 </div>
-            </div>
-
-            {session.session_key ? (
-                <div className="mt-4">
-                    <h3 className="text-lg font-bold text-green-300 mb-2">Telemetry Data Available</h3>
-                    <LapChart sessionKey={session.session_key} />
-                </div>
-            ) : (
-                <div className="mt-4 p-4 bg-[#252538]/80 border border-gray-700 rounded-lg text-center">
-                    <p className="text-yellow-400">Telemetry data unavailable for this session</p>
-                </div>
-            )}
+            ) : null}
         </div>
     );
 };

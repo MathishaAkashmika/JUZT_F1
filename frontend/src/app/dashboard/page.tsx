@@ -26,7 +26,8 @@ import DriverStandingsPanel from '@/components/dashboard/DriverStandingsPanel'
 import SessionInfoPanel from '@/components/dashboard/SessionInfoPanel'
 import ConstructorStandingsPanel from '@/components/dashboard/ConstructorStandingsPanel'
 import SessionResultsPanel from '@/components/dashboard/SessionResultsPanel'
-import SessionDetails from '@/components/SessionDetails' // Added import for SessionDetails
+import SessionDetails from '@/components/SessionDetails'
+import '@/styles/LapChart.css' // Add this import for LapChart styling
 
 export default function RaceDashboard() {
     const [selectedSeason, setSelectedSeason] = useState("")
@@ -199,7 +200,7 @@ export default function RaceDashboard() {
                     isLoadingSessions={isLoadingSessions}
                 />
 
-                {/* Session Details Panel */}
+                {/* Session Details Panel with Lap Chart */}
                 {currentSession && (
                     <div className="w-full bg-[#1E1E2E]/60 border border-gray-800 rounded-xl p-4 mb-4">
                         <h2 className="text-xl font-bold mb-3 text-blue-300">Session Details</h2>
