@@ -124,7 +124,10 @@ export interface SessionResult {
     gridPosition?: number;
 }
 
-export const handleApiError = (error: any): ApiError => {
+// Type for API error handling
+export type ApiErrorType = Error | AxiosError | unknown;
+
+export const handleApiError = (error: ApiErrorType): ApiError => {
     if ((error as AxiosError).isAxiosError) {
         const axiosError = error as AxiosError;
         return {
