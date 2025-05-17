@@ -1,12 +1,13 @@
 import axios from 'axios';
 import { Session, ApiError, handleApiError } from './types';
 import { F1_API_BASE_URL } from './utils';
+import { F1ApiRace, OpenF1Session, SessionSchedule } from './session-types';
 
 export const getRaceSessions = async (year: string, raceId: string): Promise<{ data: Session[]; error?: ApiError }> => {
     try {
         console.log(`Fetching race data for year: ${year}, raceId: ${raceId}`);
         const response = await axios.get(`${F1_API_BASE_URL}/${year}`);
-        const race = response.data.races.find((r: any) => r.circuit.circuitId === raceId);
+        const race = response.data.races.find((r: F1ApiRace) => r.circuit.circuitId === raceId);
 
         if (!race) {
             console.log(`Race not found for raceId: ${raceId}`);
@@ -34,11 +35,9 @@ export const getRaceSessions = async (year: string, raceId: string): Promise<{ d
         } catch (openF1Error) {
             console.error('Error fetching OpenF1 sessions:', openF1Error);
             return { data: [], error: { message: 'Failed to fetch OpenF1 sessions', status: 500 } };
-        }
-
-        // Filter by location if possible
+        }        // Filter by location if possible
         if (circuitLocation) {
-            const locationMatches = openF1Sessions.filter((session: any) => {
+            const locationMatches = openF1Sessions.filter((session: OpenF1Session) => {
                 if (!session || !session.location) return false;
                 const sessionLocation = session.location.toLowerCase();
                 const targetLocation = circuitLocation.toLowerCase();
@@ -53,12 +52,10 @@ export const getRaceSessions = async (year: string, raceId: string): Promise<{ d
             } else {
                 console.log(`No location matches found for ${circuitLocation}`);
             }
-        }
-
-        const sessions: Session[] = [];
+        } const sessions: Session[] = [];
 
         // Add regular sessions with improved error handling
-        const addSession = (schedule: any, type: string, sessionType: string) => {
+        const addSession = (schedule: SessionSchedule | undefined, type: string, sessionType: string) => {
             if (schedule?.date) {
                 try {
                     console.log(`Processing session: ${type} (${sessionType})`);
@@ -100,7 +97,7 @@ export const getRaceSessions = async (year: string, raceId: string): Promise<{ d
  * Find the session key by matching the date and approximate time.
  * This helper function compares the date_start from OpenF1 API with our race schedule date and time.
  */
-const findSessionKeyByDate = (openF1Sessions: any[], date: string, time: string, sessionType: string): number | null => {
+const findSessionKeyByDate = (openF1Sessions: OpenF1Session[], date: string, time: string, sessionType: string): number | null => {
     if (!date || !time || !sessionType) {
         console.log('Missing required parameters:', { date, time, sessionType });
         return null;

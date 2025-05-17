@@ -15,12 +15,35 @@ interface Driver {
     team_color: string;
 }
 
+interface Lap {
+    lap_number: number;
+    driver_number: number;
+    date_start: string;
+    lap_duration: number | null;
+    duration_sector_1: number | null;
+    duration_sector_2: number | null;
+    duration_sector_3: number | null;
+    i1_speed: number | null;
+    i2_speed: number | null;
+    st_speed: number | null;
+    is_pit_out_lap: boolean;
+    segments_sector_1?: number[];
+    segments_sector_2?: number[];
+    segments_sector_3?: number[];
+    date_formatted?: string;
+    avg_sector_time?: number;
+    valid_sectors?: number;
+    completion_status?: string;
+    driver_name?: string;
+    team_color?: string;
+}
+
 const LapChart: React.FC<LapChartProps> = ({ sessionKey }) => {
-    const [lapData, setLapData] = useState<any[]>([]);
+    const [lapData, setLapData] = useState<Lap[]>([]);
     const [drivers, setDrivers] = useState<Driver[]>([]);
     const [selectedDriver, setSelectedDriver] = useState<number | null>(null);
     const [loading, setLoading] = useState(true);
-    const [selectedLap, setSelectedLap] = useState<any | null>(null);
+    const [selectedLap, setSelectedLap] = useState<Lap | null>(null);
     const [viewMode, setViewMode] = useState<'overview' | 'detail'>('overview');
     const [showTable, setShowTable] = useState<boolean>(true);
 
@@ -38,13 +61,13 @@ const LapChart: React.FC<LapChartProps> = ({ sessionKey }) => {
                 setDrivers(driversData);
 
                 // Flatten laps for recharts
-                const processed = laps.map((lap: any) => ({
+                const processed = laps.map((lap: Lap) => ({
                     ...lap,
                     date_formatted: new Date(lap.date_start).toLocaleTimeString(),
                     avg_sector_time: calculateAvgSectorTime(lap),
                     valid_sectors: countValidSectors(lap),
                     completion_status: getCompletionStatus(lap),
-                    driver_name: driversData.find((d: Driver) => d.driver_number === lap.driver_number)?.full_name || lap.driver_number,
+                    driver_name: driversData.find((d: Driver) => d.driver_number === lap.driver_number)?.full_name || lap.driver_number.toString(),
                     team_color: driversData.find((d: Driver) => d.driver_number === lap.driver_number)?.team_color || '#cccccc'
                 }));
 
@@ -67,25 +90,18 @@ const LapChart: React.FC<LapChartProps> = ({ sessionKey }) => {
     }, [sessionKey]);
 
     // Helper functions
-    const calculateAvgSectorTime = (lap: any) => {
-        const validSectors = [lap.duration_sector_1, lap.duration_sector_2, lap.duration_sector_3].filter((t: any) => t !== null);
+    const calculateAvgSectorTime = (lap: Lap) => {
+        const validSectors = [lap.duration_sector_1, lap.duration_sector_2, lap.duration_sector_3].filter((t): t is number => t !== null);
         if (validSectors.length === 0) return 0;
-        return validSectors.reduce((sum: number, t: number) => sum + t, 0) / validSectors.length;
+        return validSectors.reduce((sum, t) => sum + t, 0) / validSectors.length;
     };
 
-    const countValidSectors = (lap: any) => [lap.duration_sector_1, lap.duration_sector_2, lap.duration_sector_3].filter((t: any) => t !== null).length;
+    const countValidSectors = (lap: Lap) => [lap.duration_sector_1, lap.duration_sector_2, lap.duration_sector_3].filter((t): t is number => t !== null).length;
 
-    const getCompletionStatus = (lap: any) => {
+    const getCompletionStatus = (lap: Lap) => {
         if (lap.lap_duration !== null) return 'Complete';
         if (lap.is_pit_out_lap) return 'Pit Out';
         return 'Incomplete';
-    }; const getLapStatusColor = (status: string) => {
-        switch (status) {
-            case 'Complete': return '#10B981'; // Emerald green
-            case 'Pit Out': return '#F59E0B';  // Amber
-            case 'Incomplete': return '#EF4444'; // Red
-            default: return '#6B7280';  // Gray
-        }
     };
 
     const getLapStatusBgColor = (status: string) => {
@@ -106,7 +122,7 @@ const LapChart: React.FC<LapChartProps> = ({ sessionKey }) => {
 
     const chartsData = selectedDriverData.filter(lap => lap.lap_duration !== null || lap.duration_sector_2 !== null);
 
-    const handleLapSelect = (lap: any) => {
+    const handleLapSelect = (lap: Lap) => {
         setSelectedLap(lap);
         setViewMode('detail');
     };
@@ -115,7 +131,9 @@ const LapChart: React.FC<LapChartProps> = ({ sessionKey }) => {
 
     const handleDriverSelect = (driverNumber: number) => {
         setSelectedDriver(driverNumber);
-    }; if (loading) return (
+    };
+
+    if (loading) return (
         <div className="flex items-center justify-center h-64 bg-gray-900 bg-opacity-80 rounded-xl border border-gray-700">
             <div className="text-xl font-semibold text-gray-100 animate-pulse flex items-center">
                 <svg className="animate-spin -ml-1 mr-3 h-6 w-6 text-cyan-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -125,7 +143,9 @@ const LapChart: React.FC<LapChartProps> = ({ sessionKey }) => {
                 Loading Lap Data...
             </div>
         </div>
-    ); return (
+    );
+
+    return (
         <div className="w-full mt-12 mb-8 border-t border-gray-700 pt-8">
             <div className="bg-[#1E1E32] rounded-xl p-6 mb-4 transition-all duration-300 hover:shadow-lg border border-gray-800 shadow-xl">
                 <h2 className="text-2xl font-bold text-white mb-4 flex items-center">
@@ -134,7 +154,9 @@ const LapChart: React.FC<LapChartProps> = ({ sessionKey }) => {
                     </svg>
                     LapAnalysis
                 </h2>
-                <p className="text-sm text-gray-300 mb-6">Detailed lap times and telemetry data from the current session</p>                {/* Driver Selection */}
+                <p className="text-sm text-gray-300 mb-6">Detailed lap times and telemetry data from the current session</p>
+
+                {/* Driver Selection */}
                 <div className="mb-8 animate-fadeIn">
                     <h3 className="text-lg font-semibold mb-4 text-gray-200 flex items-center">
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -159,7 +181,9 @@ const LapChart: React.FC<LapChartProps> = ({ sessionKey }) => {
                             </button>
                         ))}
                     </div>
-                </div>                {viewMode === 'overview' ? (
+                </div>
+
+                {viewMode === 'overview' ? (
                     <div className="space-y-8 animate-fadeIn">
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                             <div className="bg-gradient-to-br from-[#283146] to-[#1e2434] p-4 rounded-lg shadow-lg border border-cyan-900/20 transition-all duration-300 hover:shadow-cyan-900/20 hover:translate-y-[-2px]">
@@ -178,11 +202,12 @@ const LapChart: React.FC<LapChartProps> = ({ sessionKey }) => {
                                 <h3 className="text-sm font-medium text-fuchsia-300 mb-1">Best Lap Time</h3>
                                 <p className="text-2xl font-bold text-white">
                                     {selectedDriverData.filter(lap => lap.lap_duration !== null).length > 0
-                                        ? Math.min(...selectedDriverData.filter(lap => lap.lap_duration !== null).map(lap => lap.lap_duration)).toFixed(3) + 's'
+                                        ? Math.min(...selectedDriverData.filter(lap => lap.lap_duration !== null).map(lap => lap.lap_duration as number)).toFixed(3) + 's'
                                         : 'N/A'}
                                 </p>
                             </div>
-                        </div>                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        </div>
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                             {/* Lap times chart */}
                             <div className="col-span-1 lg:col-span-2">
                                 <h3 className="text-lg font-semibold mb-3 text-white flex items-center">
@@ -198,7 +223,7 @@ const LapChart: React.FC<LapChartProps> = ({ sessionKey }) => {
                                             <XAxis dataKey="lap_number" stroke="#9CA3AF" />
                                             <YAxis domain={['auto', 'auto']} stroke="#9CA3AF" label={{ value: 'Time (s)', angle: -90, position: 'insideLeft', style: { fill: '#9CA3AF' } }} />
                                             <Tooltip
-                                                formatter={(value: any) => [value !== null ? `${Number(value).toFixed(3)}s` : 'N/A']}
+                                                formatter={(value: unknown) => [typeof value === 'number' ? `${Number(value).toFixed(3)}s` : 'N/A']}
                                                 labelFormatter={value => `Lap ${value}`}
                                                 contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#F3F4F6', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.3)' }}
                                                 animationDuration={300}
@@ -241,7 +266,7 @@ const LapChart: React.FC<LapChartProps> = ({ sessionKey }) => {
                                             <XAxis dataKey="lap_number" stroke="#9CA3AF" />
                                             <YAxis domain={[0, 350]} stroke="#9CA3AF" label={{ value: 'Speed (km/h)', angle: -90, position: 'insideLeft', style: { fill: '#9CA3AF' } }} />
                                             <Tooltip
-                                                formatter={(value: any) => [value !== null ? `${value} km/h` : 'N/A']}
+                                                formatter={(value: unknown) => [typeof value === 'number' ? `${value} km/h` : 'N/A']}
                                                 labelFormatter={value => `Lap ${value}`}
                                                 contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#F3F4F6', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.3)' }}
                                                 animationDuration={300}
@@ -256,7 +281,8 @@ const LapChart: React.FC<LapChartProps> = ({ sessionKey }) => {
                                     </ResponsiveContainer>
                                 </div>
                             </div>
-                        </div>                        {/* Table Toggle Button */}
+                        </div>
+                        {/* Table Toggle Button */}
                         <div className="flex justify-between items-center mt-8 mb-3">
                             <h3 className="text-lg font-semibold text-white flex items-center">
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -284,7 +310,8 @@ const LapChart: React.FC<LapChartProps> = ({ sessionKey }) => {
                                     </>
                                 )}
                             </button>
-                        </div>                        {/* Lap list - Togglable */}
+                        </div>
+                        {/* Lap list - Togglable */}
                         {showTable && (
                             <div className="overflow-x-auto rounded-lg shadow-lg border border-gray-700 transition-all duration-300 animate-fadeIn">
                                 <table className="min-w-full divide-y divide-gray-700">
@@ -311,8 +338,8 @@ const LapChart: React.FC<LapChartProps> = ({ sessionKey }) => {
                                             >
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-100">{lap.lap_number}</td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                                    <span className={`px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getLapStatusBgColor(lap.completion_status)} bg-opacity-20 text-${getLapStatusBgColor(lap.completion_status).replace('bg-', '')}`}>
-                                                        {lap.completion_status}
+                                                    <span className={`px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getLapStatusBgColor(lap.completion_status || 'Incomplete')} bg-opacity-20 text-${getLapStatusBgColor(lap.completion_status || 'Incomplete').replace('bg-', '')}`}>
+                                                        {lap.completion_status || 'Incomplete'}
                                                     </span>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{formatTime(lap.lap_duration)}</td>
@@ -359,7 +386,8 @@ const LapChart: React.FC<LapChartProps> = ({ sessionKey }) => {
                                 </svg>
                                 Back to Overview
                             </button>
-                        </div>                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="animate-fadeIn" style={{ animationDelay: "100ms" }}>
                                 <h3 className="text-lg font-medium mb-4 flex items-center text-gray-100">
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -375,8 +403,8 @@ const LapChart: React.FC<LapChartProps> = ({ sessionKey }) => {
                                     <div className="bg-[#1A1A2E] p-4 rounded-lg shadow-md border border-gray-700 transition-all duration-300 hover:shadow-cyan-900/10 hover:translate-y-[-2px]">
                                         <p className="text-sm text-gray-400 mb-1">Lap Status</p>
                                         <p className="font-medium text-gray-200">
-                                            <span className={`px-2 py-0.5 rounded-md text-sm ${getLapStatusBgColor(selectedLap.completion_status)} bg-opacity-20 text-${getLapStatusBgColor(selectedLap.completion_status).replace('bg-', '')}`}>
-                                                {selectedLap.completion_status}
+                                            <span className={`px-2 py-0.5 rounded-md text-sm ${getLapStatusBgColor(selectedLap.completion_status || 'Incomplete')} bg-opacity-20 text-${getLapStatusBgColor(selectedLap.completion_status || 'Incomplete').replace('bg-', '')}`}>
+                                                {selectedLap.completion_status || 'Incomplete'}
                                             </span>
                                         </p>
                                     </div>
@@ -429,7 +457,8 @@ const LapChart: React.FC<LapChartProps> = ({ sessionKey }) => {
                                         <p className="font-medium text-gray-200">{selectedLap.st_speed !== null ? `${selectedLap.st_speed} km/h` : 'N/A'}</p>
                                     </div>
                                 </div>
-                            </div>                                <div className="animate-fadeIn" style={{ animationDelay: "200ms" }}>
+                            </div>
+                            <div className="animate-fadeIn" style={{ animationDelay: "200ms" }}>
                                 <h3 className="text-lg font-medium mb-4 flex items-center text-gray-100">
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-fuchsia-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
@@ -447,7 +476,7 @@ const LapChart: React.FC<LapChartProps> = ({ sessionKey }) => {
                                                 <YAxis domain={[0, 3000]} stroke="#9CA3AF" />
                                                 <Tooltip
                                                     contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#F9FAFB', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.3)' }}
-                                                    formatter={(value: any) => [value !== 0 ? `${(value / 1000).toFixed(3)}s` : 'N/A']}
+                                                    formatter={(value: unknown) => [typeof value === 'number' && value !== 0 ? `${(value / 1000).toFixed(3)}s` : 'N/A']}
                                                     itemStyle={{ color: '#F3F4F6' }}
                                                     labelStyle={{ color: '#F9FAFB', fontWeight: 'bold' }}
                                                 />
@@ -473,7 +502,7 @@ const LapChart: React.FC<LapChartProps> = ({ sessionKey }) => {
                                                 <YAxis domain={[0, 3000]} stroke="#9CA3AF" />
                                                 <Tooltip
                                                     contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#F9FAFB', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.3)' }}
-                                                    formatter={(value: any) => [value !== 0 ? `${(value / 1000).toFixed(3)}s` : 'N/A']}
+                                                    formatter={(value: unknown) => [typeof value === 'number' && value !== 0 ? `${(value / 1000).toFixed(3)}s` : 'N/A']}
                                                     itemStyle={{ color: '#F3F4F6' }}
                                                     labelStyle={{ color: '#F9FAFB', fontWeight: 'bold' }}
                                                 />
@@ -499,7 +528,7 @@ const LapChart: React.FC<LapChartProps> = ({ sessionKey }) => {
                                                 <YAxis domain={[0, 3000]} stroke="#9CA3AF" />
                                                 <Tooltip
                                                     contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#F9FAFB', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.3)' }}
-                                                    formatter={(value: any) => [value !== 0 ? `${(value / 1000).toFixed(3)}s` : 'N/A']}
+                                                    formatter={(value: unknown) => [typeof value === 'number' && value !== 0 ? `${(value / 1000).toFixed(3)}s` : 'N/A']}
                                                     itemStyle={{ color: '#F3F4F6' }}
                                                     labelStyle={{ color: '#F9FAFB', fontWeight: 'bold' }}
                                                 />
@@ -517,8 +546,7 @@ const LapChart: React.FC<LapChartProps> = ({ sessionKey }) => {
                             </div>
                         </div>
                     </div>
-                )
-                )}
+                ))}
             </div>
         </div>
     );

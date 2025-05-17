@@ -1,6 +1,13 @@
 import axios from 'axios';
 import { SessionResult, ApiError, handleApiError } from './types';
 import { F1_API_BASE_URL, getOpenF1Drivers } from './utils';
+import {
+    RaceResult,
+    QualifyingResult,
+    SprintQualyResult,
+    SprintRaceResult,
+    PracticeResult
+} from './result-types';
 
 export const getSessionResults = async (year: string, round: string, session: string): Promise<{ data: SessionResult[]; error?: ApiError }> => {
     try {
@@ -15,11 +22,9 @@ export const getSessionResults = async (year: string, round: string, session: st
         const openF1Response = await getOpenF1Drivers();
         const openF1Drivers = openF1Response.data || [];
 
-        let results: SessionResult[] = [];
-
-        switch (session) {
+        let results: SessionResult[] = []; switch (session) {
             case 'race':
-                results = response.data.races.results.map((result: any) => {
+                results = response.data.races.results.map((result: RaceResult) => {
                     // Find matching driver in OpenF1 data
                     const openF1Driver = openF1Drivers.find(
                         d => d.name_acronym === result.driver.shortName
@@ -43,10 +48,9 @@ export const getSessionResults = async (year: string, round: string, session: st
                         time: result.time || result.fastLap || '-',
                         position: result.position
                     };
-                });
-                break;
+                }); break;
             case 'qualifying':
-                results = response.data.races.qualyResults.map((result: any) => {
+                results = response.data.races.qualyResults.map((result: QualifyingResult) => {
                     const openF1Driver = openF1Drivers.find(
                         d => d.name_acronym === result.driver.shortName
                     );
@@ -69,42 +73,39 @@ export const getSessionResults = async (year: string, round: string, session: st
                         time: result.q3 || result.q2 || result.q1 || '-',
                         position: result.gridPosition
                     };
-                });
-                break;
-            case 'sprintQualy':
-                results = response.data.races.sprintQualyResults.map((result: any) => {
-                    // Clean up qualifying times by removing tab characters
-                    const cleanTime = (time: string | null) => time ? time.replace(/\t/g, '').trim() : null;
-                    const sq3 = cleanTime(result.sq3);
-                    const sq2 = cleanTime(result.sq2);
-                    const sq1 = cleanTime(result.sq1);
+                }); break;
+            case 'sprintQualy': results = response.data.races.sprintQualyResults.map((result: SprintQualyResult) => {
+                // Clean up qualifying times by removing tab characters
+                const cleanTime = (time: string | null | undefined) => time ? time.replace(/\t/g, '').trim() : null;
+                const sq3 = cleanTime(result.sq3);
+                const sq2 = cleanTime(result.sq2);
+                const sq1 = cleanTime(result.sq1);
 
-                    const openF1Driver = openF1Drivers.find(
-                        d => d.name_acronym === result.driver.shortName
-                    );
+                const openF1Driver = openF1Drivers.find(
+                    d => d.name_acronym === result.driver.shortName
+                );
 
-                    return {
-                        driver: {
-                            driverId: result.driver.driverId,
-                            name: result.driver.name,
-                            surname: result.driver.surname,
-                            shortName: result.driver.shortName,
-                            number: result.driver.number,
-                            nationality: result.driver.nationality,
-                            imageUrl: openF1Driver?.headshot_url || null
-                        },
-                        team: {
-                            teamId: result.team.teamId,
-                            teamName: result.team.teamName,
-                            nationality: result.team.teamNationality || result.team.nationality
-                        },
-                        time: sq3 || sq2 || sq1 || '-',
-                        position: result.gridPosition
-                    };
-                });
-                break;
+                return {
+                    driver: {
+                        driverId: result.driver.driverId,
+                        name: result.driver.name,
+                        surname: result.driver.surname,
+                        shortName: result.driver.shortName,
+                        number: result.driver.number,
+                        nationality: result.driver.nationality,
+                        imageUrl: openF1Driver?.headshot_url || null
+                    },
+                    team: {
+                        teamId: result.team.teamId,
+                        teamName: result.team.teamName,
+                        nationality: result.team.teamNationality || result.team.nationality
+                    },
+                    time: sq3 || sq2 || sq1 || '-',
+                    position: result.gridPosition
+                };
+            }); break;
             case 'sprintRace':
-                results = response.data.races.sprintRaceResults.map((result: any) => {
+                results = response.data.races.sprintRaceResults.map((result: SprintRaceResult) => {
                     const openF1Driver = openF1Drivers.find(
                         d => d.name_acronym === result.driver.shortName
                     );
@@ -129,10 +130,9 @@ export const getSessionResults = async (year: string, round: string, session: st
                         points: result.points || 0,
                         gridPosition: result.gridPosition
                     };
-                });
-                break;
+                }); break;
             default: // Practice sessions (fp1, fp2, fp3)
-                results = response.data.races[`${session}Results`].map((result: any) => {
+                results = response.data.races[`${session}Results`].map((result: PracticeResult) => {
                     const openF1Driver = openF1Drivers.find(
                         d => d.name_acronym === result.driver.shortName
                     );

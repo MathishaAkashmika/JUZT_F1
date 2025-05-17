@@ -2,10 +2,27 @@ import axios from 'axios';
 import { Track, ApiError, handleApiError } from './types';
 import { F1_API_BASE_URL } from './utils';
 
+// Interface for the race data returned by the API
+interface RaceTrackData {
+    circuit: {
+        circuitId: string;
+        circuitName: string;
+        country: string;
+        city: string;
+        circuitLength: string;
+        firstParticipationYear: number;
+        lapRecord?: string;
+        fastestLapDriverId?: string;
+        fastestLapYear?: number;
+    };
+    laps: number;
+    round: number;
+}
+
 export const getTracks = async (year: string): Promise<{ data: Track[]; error?: ApiError }> => {
     try {
         const response = await axios.get(`${F1_API_BASE_URL}/${year}`);
-        const tracks = response.data.races.map((race: any) => ({
+        const tracks = response.data.races.map((race: RaceTrackData) => ({
             id: race.circuit.circuitId,
             name: race.circuit.circuitName,
             circuit: race.circuit.circuitName,
