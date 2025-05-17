@@ -5,7 +5,7 @@ import { F1_API_BASE_URL } from './utils';
 export const getConstructorStandings = async (year: string): Promise<{ data: Constructor[]; error?: ApiError }> => {
     try {
         const response = await axios.get(`${F1_API_BASE_URL}/${year}/constructors`);
-        const constructors = response.data.data.map((constructor: any) => ({
+        const constructors = response.data.data.map((constructor: { id: number; name: string; color?: string; points?: number; position?: number }) => ({
             id: constructor.id,
             name: constructor.name,
             color: constructor.color || '#000000',
@@ -22,7 +22,13 @@ export const getConstructorStandings = async (year: string): Promise<{ data: Con
 export const getConstructorChampionship = async (year: string): Promise<{ data: ConstructorChampionship[]; error?: ApiError }> => {
     try {
         const response = await axios.get(`${F1_API_BASE_URL}/${year}/constructors-championship`);
-        const constructors = response.data.constructors_championship.map((constructor: any) => ({
+        const constructors = response.data.constructors_championship.map((constructor: {
+            teamId: string;
+            team: { teamName: string; country: string };
+            points: number;
+            position: number;
+            wins: number
+        }) => ({
             id: constructor.teamId,
             name: constructor.team.teamName,
             points: constructor.points,
