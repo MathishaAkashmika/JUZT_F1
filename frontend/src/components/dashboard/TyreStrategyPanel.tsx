@@ -1,5 +1,6 @@
 import React, { useEffect, useState, JSX } from 'react';
 import { Stint, TyreDriver, getDriversForTyreStrategy, getAllDriverStints, getTyreColor } from '@/lib/f1-api/tyres';
+import Image from 'next/image';
 
 interface TyreStrategyPanelProps {
     sessionKey: number | null;
@@ -341,15 +342,16 @@ const TyreStrategyPanel: React.FC<TyreStrategyPanelProps> = ({ sessionKey, isLoa
                                     onClick={() => setSelectedDriver(isSelected ? null : driver.driver_number)}
                                 >
                                     <div className="flex-shrink-0 w-16 flex flex-col items-center mr-3">
-                                        {driver.headshot_url ? (
-                                            <div className="h-8 w-8 rounded-full overflow-hidden mb-1 border-2"
-                                                style={{ borderColor: driver.team_colour || '#cccccc' }}>
-                                                <img
-                                                    src={driver.headshot_url}
-                                                    alt={driver.full_name}
-                                                    className="h-full w-full object-cover"
-                                                />
-                                            </div>
+                                        {driver.headshot_url ? (<div className="h-8 w-8 rounded-full overflow-hidden mb-1 border-2"
+                                            style={{ borderColor: driver.team_colour || '#cccccc' }}>
+                                            <Image
+                                                src={driver.headshot_url}
+                                                alt={driver.full_name}
+                                                className="object-cover"
+                                                width={32}
+                                                height={32}
+                                            />
+                                        </div>
                                         ) : (
                                             <div
                                                 className="h-8 w-8 rounded-full flex items-center justify-center mb-1 text-white text-xs font-bold"

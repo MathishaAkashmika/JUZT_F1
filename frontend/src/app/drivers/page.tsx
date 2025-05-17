@@ -6,6 +6,7 @@ import { ChevronDown, Trophy, ExternalLink } from 'lucide-react'
 import { Driver, Season, ApiError } from '@/lib/f1-api/types'
 import { getDriversByYear } from '@/lib/f1-api/drivers'
 import { getAvailableSeasons } from '@/lib/f1-api'
+import Image from 'next/image'
 
 // Custom styles for text shadow
 const textShadowStyle = {
@@ -15,6 +16,7 @@ const textShadowStyle = {
 export default function DriversPage() {
     const [currentDrivers, setCurrentDrivers] = useState<Driver[]>([]);
     const [selectedSeason, setSelectedSeason] = useState(new Date().getFullYear().toString());
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [availableSeasons, setAvailableSeasons] = useState<Season[]>([]);
     const [formattedSeasons, setFormattedSeasons] = useState<string[]>([]);
     const [selectedDriverId, setSelectedDriverId] = useState<string | null>(null);
@@ -217,27 +219,28 @@ export default function DriversPage() {
                 </button>
 
                 <div className="bg-gradient-to-br from-[#1E1E1E] to-[#121212] rounded-xl overflow-hidden shadow-xl border border-gray-800/20">
-                    <div className="relative h-64 md:h-96 bg-gradient-to-r from-black via-black/70 to-transparent">
-                        {selectedDriver.imageUrl && !failedImageUrls.has(selectedDriver.imageUrl) ? (
-                            <div className="absolute inset-0">
-                                <div className="w-full h-full overflow-hidden">
-                                    <img
-                                        src={getDriverImageUrl(selectedDriver)}
-                                        alt={`${selectedDriver.name} ${selectedDriver.surname}`}
-                                        className="w-full h-full object-cover object-top opacity-70"
-                                        onError={() => handleImageError(selectedDriver, selectedDriver.imageUrl!)}
-                                    />
-                                </div>
-                                <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/70 to-transparent"></div>
+                    <div className="relative h-64 md:h-96 bg-gradient-to-r from-black via-black/70 to-transparent">                        {selectedDriver.imageUrl && !failedImageUrls.has(selectedDriver.imageUrl) ? (
+                        <div className="absolute inset-0">
+                            <div className="w-full h-full overflow-hidden">
+                                <Image
+                                    src={getDriverImageUrl(selectedDriver)}
+                                    alt={`${selectedDriver.name} ${selectedDriver.surname}`}
+                                    className="w-full h-full object-cover object-top opacity-70"
+                                    onError={() => handleImageError(selectedDriver, selectedDriver.imageUrl!)}
+                                    fill
+                                    sizes="(max-width: 768px) 100vw, 50vw"
+                                />
                             </div>
-                        ) : (
-                            <div className="absolute inset-0">
-                                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#2A2A2A] to-[#1A1A1A] opacity-70">
-                                    <span className="text-6xl font-bold text-gray-600">{selectedDriver.shortName}</span>
-                                </div>
-                                <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/70 to-transparent"></div>
+                            <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/70 to-transparent"></div>
+                        </div>
+                    ) : (
+                        <div className="absolute inset-0">
+                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#2A2A2A] to-[#1A1A1A] opacity-70">
+                                <span className="text-6xl font-bold text-gray-600">{selectedDriver.shortName}</span>
                             </div>
-                        )}
+                            <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/70 to-transparent"></div>
+                        </div>
+                    )}
 
                         <div className="relative z-10 h-full flex flex-col justify-end p-6">
                             <div className="flex flex-wrap items-center gap-2 mb-3">
@@ -369,15 +372,16 @@ export default function DriversPage() {
                             key={driver.driverId}
                             className="bg-gradient-to-b from-[#1E1E1E] to-[#181818] rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] cursor-pointer border border-gray-800/30"
                             onClick={() => setSelectedDriverId(driver.driverId)}
-                        >
-                            <div className="h-52 relative overflow-hidden">
+                        >                            <div className="h-52 relative overflow-hidden">
                                 {driver.imageUrl && !failedImageUrls.has(driver.imageUrl) ? (
                                     <>
-                                        <img
+                                        <Image
                                             src={getDriverImageUrl(driver)}
                                             alt={`${driver.name} ${driver.surname}`}
-                                            className="h-full w-full object-cover object-top transition-transform duration-500 hover:scale-105"
+                                            className="object-cover object-top transition-transform duration-500 hover:scale-105"
                                             onError={() => handleImageError(driver, driver.imageUrl!)}
+                                            fill
+                                            sizes="(max-width: 768px) 100vw, 33vw"
                                         />
                                         <div className="absolute inset-0 bg-gradient-to-t from-[#181818] to-transparent"></div>
                                     </>

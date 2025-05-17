@@ -1,5 +1,6 @@
 import React from 'react';
 import { SessionResult } from '@/lib/f1-api';
+import Image from 'next/image';
 
 interface DriverHighlightCardsProps {
     sessionResults: SessionResult[];
@@ -36,16 +37,18 @@ const DriverHighlightCards: React.FC<DriverHighlightCardsProps> = ({
                             ${idx === 0 ? 'bg-gradient-to-br from-[#FFD700]/30 to-[#5A4A2A]/80' :
                                 idx === 1 ? 'bg-gradient-to-br from-[#C0C0C0]/30 to-[#4A4A5A]/80' :
                                     'bg-gradient-to-br from-[#CD7F32]/30 to-[#5A3A2A]/80'}`}
-                        />
-
-                        {/* Driver Image Background */}
+                        />                        {/* Driver Image Background */}
                         {result.driver.imageUrl && (
                             <div className="absolute right-0 top-0 h-full w-2/3 opacity-40" style={{ zIndex: 1 }}>
-                                <img
-                                    src={result.driver.imageUrl}
-                                    alt={result.driver.surname}
-                                    className="h-full w-full object-cover object-center"
-                                />
+                                <div className="relative h-full w-full">
+                                    <Image
+                                        src={result.driver.imageUrl}
+                                        alt={result.driver.surname}
+                                        className="object-cover object-center"
+                                        fill
+                                        sizes="(max-width: 768px) 33vw, 25vw"
+                                    />
+                                </div>
                             </div>
                         )}
 
@@ -78,14 +81,17 @@ const DriverHighlightCards: React.FC<DriverHighlightCardsProps> = ({
                             <div className={`h-20 w-20 rounded-lg overflow-hidden border-2 ml-auto mr-2
                                 ${idx === 0 ? 'border-[#FFD700] shadow-md shadow-[#FFD700]/30' :
                                     idx === 1 ? 'border-[#C0C0C0] shadow-md shadow-[#C0C0C0]/30' :
-                                        'border-[#CD7F32] shadow-md shadow-[#CD7F32]/30'} 
-                                flex items-center justify-center`}>
+                                        'border-[#CD7F32] shadow-md shadow-[#CD7F32]/30'}                                flex items-center justify-center`}>
                                 {result.driver.imageUrl ? (
-                                    <img
-                                        src={result.driver.imageUrl}
-                                        alt={result.driver.shortName}
-                                        className="h-full w-full object-cover"
-                                    />
+                                    <div className="relative h-full w-full">
+                                        <Image
+                                            src={result.driver.imageUrl}
+                                            alt={result.driver.shortName}
+                                            className="object-cover"
+                                            fill
+                                            sizes="(max-width: 768px) 20vw, 10vw"
+                                        />
+                                    </div>
                                 ) : (
                                     <div className={`h-full w-full flex items-center justify-center
                                         ${idx === 0 ? 'bg-[#FFD700]/20' :
