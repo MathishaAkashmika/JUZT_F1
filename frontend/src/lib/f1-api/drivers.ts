@@ -29,10 +29,8 @@ export const getCurrentDrivers = async (): Promise<{ data: Driver[]; error?: Api
 
         // Get OpenF1 driver data for headshots
         const openF1Response = await getOpenF1Drivers();
-        const openF1Drivers = openF1Response.data || [];
-
-        const drivers = await Promise.all(
-            response.data.drivers.map(async (driver: any) => {
+        const openF1Drivers = openF1Response.data || []; const drivers = await Promise.all(
+            response.data.drivers.map(async (driver: { driverId: string; teamId: string; teamColor?: string; position?: number; points?: number }) => {
                 const details = await getDriverDetails(driver.driverId);
                 const openF1Driver = openF1Drivers.find(d => d.name_acronym === details.data.shortName);
 
@@ -54,10 +52,23 @@ export const getCurrentDrivers = async (): Promise<{ data: Driver[]; error?: Api
 
 export const getDriverStandings = async (year: string): Promise<{ data: Driver[]; error?: ApiError }> => {
     try {
-        const response = await axios.get(`${F1_API_BASE_URL}/${year}/drivers-championship`);
-
-        // Transform the API response to match our Driver interface
-        const drivers: Driver[] = response.data.drivers_championship.map((standing: any) => ({
+        const response = await axios.get(`${F1_API_BASE_URL}/${year}/drivers-championship`);        // Transform the API response to match our Driver interface
+        const drivers: Driver[] = response.data.drivers_championship.map((standing: {
+            driverId: string;
+            driver: {
+                name: string;
+                surname: string;
+                nationality: string;
+                birthday: string;
+                number: number;
+                shortName: string;
+                url: string;
+            };
+            teamId: string;
+            position: number;
+            points: number;
+            wins?: number;
+        }) => ({
             driverId: standing.driverId,
             name: standing.driver.name,
             surname: standing.driver.surname,
@@ -90,10 +101,18 @@ export const getDriversByYear = async (year: string): Promise<{ data: Driver[]; 
 
         // Get OpenF1 driver data for headshots
         const openF1Response = await getOpenF1Drivers();
-        const openF1Drivers = openF1Response.data || [];
-
-        // Transform the API response to match our Driver interface
-        const drivers: Driver[] = response.data.drivers.map((driver: any) => {
+        const openF1Drivers = openF1Response.data || [];        // Transform the API response to match our Driver interface
+        const drivers: Driver[] = response.data.drivers.map((driver: {
+            driverId: string;
+            name: string;
+            surname: string;
+            nationality: string;
+            birthday: string;
+            number: number;
+            shortName: string;
+            url: string;
+            teamId: string;
+        }) => {
             const openF1Driver = openF1Drivers.find(d => d.name_acronym === driver.shortName);
 
             return {
