@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -28,6 +29,18 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         {children}
+        <Script
+          id="anythingllm-chat-widget"
+          data-embed-id="c36167c6-517c-4b16-bba6-a7ceaccbdd45"
+          data-base-api-url="http://139.59.113.193:3001/api/embed"
+          data-chat-icon="chatBubble"
+          data-no-sponsor="true"
+          data-assistant-name="JUZT_F1"
+          data-assistant-icon="https://i.ibb.co/2YFHCmtJ/JUZT-2-1.png"
+          data-brand-image-url="https://i.ibb.co/2YFHCmtJ/JUZT-2-1.png"
+          src="http://139.59.113.193:3001/embed/anythingllm-chat-widget.min.js"
+          strategy="afterInteractive"
+        />
       </body>
     </html>
   );
