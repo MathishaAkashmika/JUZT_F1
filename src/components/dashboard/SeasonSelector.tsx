@@ -36,9 +36,9 @@ const SeasonSelector: React.FC<SeasonSelectorProps> = ({
     isLoadingSessions
 }) => {
     return (
-        <div className="flex flex-row gap-8 w-full justify-center items-center mt-4 mb-6">
+        <div className="flex flex-col sm:flex-row gap-4 sm:gap-8 w-full justify-center items-center mt-4 mb-6">
             <Select value={selectedSeason} onValueChange={setSelectedSeason}>
-                <SelectTrigger className="w-40 rounded-xl bg-[#1E1E3A] border border-[#4A4AFF]/30 text-base py-2.5 px-4 font-mono flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-[#6A5ACD]">
+                <SelectTrigger className="w-full sm:w-40 rounded-xl bg-[#1E1E3A] border border-[#4A4AFF]/30 text-base py-2.5 px-4 font-mono flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-[#6A5ACD]">
                     <SelectValue placeholder="Year" />
                 </SelectTrigger>
                 <SelectContent className="bg-[#1E1E3A] border border-[#4A4AFF]/30 rounded-xl text-lg font-bold text-gray-200">
@@ -54,7 +54,7 @@ const SeasonSelector: React.FC<SeasonSelectorProps> = ({
                 </SelectContent>
             </Select>
             <Select value={selectedTrack} onValueChange={setSelectedTrack} disabled={isLoadingTracks || !selectedSeason}>
-                <SelectTrigger className="w-64 rounded-xl bg-[#1E1E3A] border border-[#4A4AFF]/30 text-base py-2.5 px-4 font-mono flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-[#6A5ACD]">
+                <SelectTrigger className="w-full sm:w-64 rounded-xl bg-[#1E1E3A] border border-[#4A4AFF]/30 text-base py-2.5 px-4 font-mono flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-[#6A5ACD]">
                     <SelectValue placeholder={isLoadingTracks ? "Loading..." : "Track"} />
                 </SelectTrigger>
                 <SelectContent className="bg-[#1E1E3A] border border-[#4A4AFF]/30 rounded-xl text-lg font-bold text-gray-200">
@@ -70,7 +70,7 @@ const SeasonSelector: React.FC<SeasonSelectorProps> = ({
                 </SelectContent>
             </Select>
             <Select value={selectedSession} onValueChange={setSelectedSession} disabled={isLoadingSessions || !selectedTrack}>
-                <SelectTrigger className="w-40 rounded-xl bg-[#1E1E3A] border border-[#4A4AFF]/30 text-base py-2.5 px-4 font-mono flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-[#6A5ACD]">
+                <SelectTrigger className="w-full sm:w-40 rounded-xl bg-[#1E1E3A] border border-[#4A4AFF]/30 text-base py-2.5 px-4 font-mono flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-[#6A5ACD]">
                     <SelectValue placeholder={isLoadingSessions ? "Loading..." : "Session"} />
                 </SelectTrigger>
                 <SelectContent className="bg-[#1E1E3A] border border-[#4A4AFF]/30 rounded-xl text-lg font-bold text-gray-200">

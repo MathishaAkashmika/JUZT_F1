@@ -16,9 +16,9 @@ const DriverHighlightCards: React.FC<DriverHighlightCardsProps> = ({
     setSelectedDriver
 }) => {
     return (
-        <div className="grid grid-cols-3 gap-6 w-full mb-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 w-full mb-4">
             {isLoadingResults ? (
-                <div className="col-span-3 text-center text-gray-400 py-8">
+                <div className="col-span-1 sm:col-span-2 md:col-span-3 text-center text-gray-400 py-8">
                     <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#6A5ACD] mx-auto mb-2"></div>
                     Loading results...
                 </div>
@@ -46,7 +46,7 @@ const DriverHighlightCards: React.FC<DriverHighlightCardsProps> = ({
                                         alt={result.driver.surname}
                                         className="object-cover object-center"
                                         fill
-                                        sizes="(max-width: 768px) 33vw, 25vw"
+                                        sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
                                     />
                                 </div>
                             </div>
