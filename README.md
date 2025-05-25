@@ -31,7 +31,7 @@ pnpm install
 ```env
 NEXT_PUBLIC_F1_API_BASE_URL=https://f1api.dev/api
 NEXT_PUBLIC_OPENF1_API_BASE_URL=https://api.openf1.org/v1
-NEXT_PUBLIC_ANYTHINGLLM_API_URL=http://139.59.113.193:3001
+NEXT_PUBLIC_ANYTHINGLLM_API_URL=
 ```
 
 4. Run the development server:
